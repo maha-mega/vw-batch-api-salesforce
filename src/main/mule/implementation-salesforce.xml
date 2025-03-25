@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="86617cb5-27c6-4648-92e1-38b63cbe619b" >
+		<salesforce:basic-connection username="anilshowreddy@gmail.com" password="Fordemo@999!" securityToken="pNb4As4l4NNrysACAoApl3ea" url="https://login.salesforce.com/services/Soap/u/61.0" />
+	</salesforce:sfdc-config>
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="2086abbb-fabb-4563-bfd6-d111e0ac0ab4" />
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="20b00c4f-4a2d-4e6e-95d9-5ed08b189da0" maxEntries="10" entryTtl="15" expirationInterval="100" config-ref="ObjectStore_Config" />
+	<flow name="implementation-salesforce-product-object-ingest" doc:id="43738de2-437f-4e22-aee0-df2ad4ece74c" >
+		<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="dd8d04c7-05fb-4b87-a136-8a878407f0b0" config-ref="Salesforce_Config_Fleet" externalIdFieldName="ProductUniqueID__c"/>
+		<set-variable value="#[payload.id]" doc:name="jobid" doc:id="2d0b35b2-9552-4358-a592-dbb7d4d44cf6" variableName="jobid"/>
+		<flow-ref doc:name="Flow Reference" doc:id="7b1e1aff-a32e-429a-8c94-2a5e60b91960" name="implementation-salesforce-bulk-jobstate"/>
+	</flow>
+	<flow name="implementation-salesforce-pricebookentry-data-ingest" doc:id="541edbf6-779f-425a-b610-c7c77afc9266">
+		<salesforce:create-job-bulk-api-v2 objectType="PricebookEntry" operation="upsert" doc:name="Create job bulk api v 2" doc:id="a676963c-eb4f-4c05-b3b9-4007f0f792d3" config-ref="Salesforce_Config_Fleet" externalIdFieldName="PBEUniqueID__c" />
+		<set-variable value="#[payload.id]" doc:name="jobid" doc:id="e3963cf0-e50e-4815-8027-06ca06855b1e" variableName="jobid" />
+		<flow-ref doc:name="Flow Reference" doc:id="d292f2de-9f7e-42c8-bd32-be76d5886764" name="implementation-salesforce-bulk-jobstate" />
+	</flow>
+	<flow name="implementation-retrieve-failed-records" doc:id="e8eec328-69b1-4315-b58d-5f1e1b84583d" >
+		<http:listener doc:name="Listener" doc:id="1b65eb1e-4319-467d-8e7e-3894f80ffc12" path="/failed/{id}" config-ref="HTTP_Listener_config"/>
+		<salesforce:retrieve-job-failed-results-bulk-v2 doc:name="Retrieve job failed results bulk v 2" doc:id="1c203688-f4dc-4e7c-99d3-aaa3c5ad80e7" config-ref="Salesforce_Config_Fleet" id="#[attributes.uriParams.id]"/>
+		<ee:transform doc:name="Transform Message" doc:id="f4bb0b5c-67e8-4938-9d4b-1500ca1e066b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="implementation-get-salesforce-recordtype" doc:id="d32147b0-c249-4ef2-988f-2996990afc16" >
+		<salesforce:query doc:name="Query" doc:id="e3778c7a-834d-45c2-bd00-d63e592cf8e3" config-ref="Salesforce_Config_Fleet">
+			<salesforce:salesforce-query ><![CDATA[SELECT Id,name FROM RecordType where DeveloperName like '%special_market%']]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="a8d61651-b29f-46f8-baff-23018102a0ce" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload.Id]" doc:name="RecordId" doc:id="bbe45450-9f4c-43fc-8b73-77cbff4e90a8" variableName="recordId"/>
+	</flow>
+	<flow name="implementation-salesforce-bulk-jobstate" doc:id="367ff1dc-1f0e-41ac-869a-29849195ebca" >
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="43bb0c01-fa0c-4018-99a0-d7b8033b2c67" >
+			<salesforce:get-job-state-bulk-api-v2 doc:name="Get job state bulk api v 2" doc:id="c7f51cd5-3353-4d89-a318-0ad592cbe50d" config-ref="Salesforce_Config_Fleet" id="#[vars.jobid]"/>
+			<set-variable value="#[payload.state]" doc:name="job state" doc:id="61bc719d-ab1b-4284-8d60-9b4ad556c268" variableName="state"/>
+			<choice doc:name="Choice" doc:id="6c699713-e8f3-46f5-b2a2-fe8ad6de7bc7" >
+				<when expression='#[vars.state == "JobComplete"]'>
+					<logger level="INFO" doc:name="Logger" doc:id="f9a90712-f420-4d0a-81b1-23075fbddc50" />
+					<salesforce:retrieve-job-successful-results-bulk-v2 doc:name="Retrieve job successful results bulk v 2" doc:id="adbb2143-93d0-41d4-9948-b9e6962733b3" config-ref="Salesforce_Config_Fleet" id="#[vars.jobid]"/>
+					<ee:transform doc:name="Transform Message" doc:id="37ab1e39-51ee-4444-95b9-83c9a5cfdc53" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</when>
+				<when expression='#[vars.state == "Failed"]' >
+					<logger level="INFO" doc:name="Logger" doc:id="a399eb5c-c6dc-4b9c-ba99-0765cf44dadb" />
+					<salesforce:retrieve-job-failed-results-bulk-v2 doc:name="Retrieve job failed results bulk v 2" doc:id="d21cafe4-cc73-4375-83f5-17084f1103d8" config-ref="Salesforce_Config_Fleet" id="#[vars.jobid]"/>
+					<ee:transform doc:name="Transform Message" doc:id="e712466a-258c-44bf-9804-a30bb65036ab" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</when>
+				<otherwise >
+					<logger level="INFO" doc:name="Logger" doc:id="85f1e832-be69-4660-8f72-5917e9dfc67f" />
+					<ee:transform doc:name="Transform Message" doc:id="021f6f79-1802-474d-b992-1fa372ba623a" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</otherwise>
+			</choice>
+		</until-successful>
+	</flow>
+</mule>

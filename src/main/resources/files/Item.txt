@@ -1,0 +1,21 @@
+model code|Item code|Item description|Item Type|price|pricfrom|priceto|model year|incl tax|active|Pricelist
+T1BE66_E12|AB|Ebony Black/Ebony-Ebony/Black|Trim |0.00|20240508|20991231|2024|N|Y|Avis
+T1BE66_E12|AC|Black-Black/Black-Black/Black/Steel Gray|Trim |   0.00|20240508|20991231|2024|N|Y|Avis
+T1BE66_E12|AD|Ebony Black-Grey-Moonrock/Ebony/Black Eb|Trim |    0.00|20240508|20991231|2024|N|Y|Avis
+T1BE66_E12|AE|Hematite/Ebony-Ebony/Black|Trim |0.00|20240508|20991231|2024|N|Y|Avis
+T1BE66_E15|7I7I|Bright Beige Metallic|Colour|     0.00|20221019|20991231|2023|N|Y|Avis
+T1BE66_E15|8I8I|Dark Grey Metallic|Colour|     0.00|20221019|20991231|2023|N|Y|Avis
+T1BE66_E15|9I9I|Deep Red Metallic|Colour|     0.00|20221019|20991231|2023|N|Y|Avis
+T1BE66_E15|H9H9|Light Grey Metallic|Colour|     0.00|20221019|20991231|2023|N|Y|Avis
+T1BE66_E15|T5T5|Mid Blue Metallic|Colour|     0.00|20221019|20991231|2023|N|Y|Avis
+T1BD66_E11|6L6|Cargo management system, slidable|Options|                    0.00|20231110|20991231|2024|N|Y|Avis
+T1BD66_E11|510|VW PREMIUM MP STD - 60(MON)/ 100000(KM)|Options|               21761.00|20240401|20991231|2024|N|Y|Avis
+T1BD66_E11|4GL|Laminated windshield made of insulating|Options|                   0.00|20231110|20991231|2024|N|Y|Avis
+T1BD66_E11|3U7|Load compartment cover with power roll c|Options|               28434.78|20240508|20991231|2024|N|Y|Avis
+T1BD66_E11|3GJ|Load compartment coating|Options|                   0.00|20231110|20991231|2024|N|Y|Avis
+T1BD66_E12|3GJ|Load compartment coating|Options|                   0.00|20231110|20991231|2024|N|Y|Avis
+T1BD66_E12|3U7|Load compartment cover with power roll c|Options|               28434.78|20240508|20991231|2024|N|Y|Avis
+T1BD66_E12|4GL|Laminated windshield made of insulating|Options|                   0.00|20231110|20991231|2024|N|Y|Avis
+T1BD66_E12|510|VW PREMIUM MP STD - 60(MON)/ 100000(KM)|Options|               21761.00|20240401|20991231|2024|N|Y|Avis
+T1BD66_E12|6L6|Cargo management system, slidable|Options|                   0.00|20231110|20991231|2024|N|Y|Avis
+T1BD66_E12|83A|255/55 R20 110V tires|Options|                   0.00|20231110|20991231|2024|N|Y|Avis

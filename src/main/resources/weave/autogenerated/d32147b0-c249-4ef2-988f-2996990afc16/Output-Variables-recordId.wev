@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_d32147b0_c249_4ef2_988f_2996990afc16_Output_Variables_recordId = Array<String {"typeId": "Id"}> | Null
+

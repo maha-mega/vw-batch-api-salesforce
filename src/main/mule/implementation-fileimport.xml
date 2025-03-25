@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd">
+	<flow name="implementation-scheduledCheckFlow" doc:id="9041d8b7-9501-433f-b91d-84d1b0102bd4" >
+		<sftp:listener doc:name="On New or Updated File" doc:id="9d69905b-fb7b-4add-ab92-bb94ad30579f" config-ref="SFTP_Config" recursive="false">
+			<scheduling-strategy>
+				<fixed-frequency />
+			</scheduling-strategy>
+			<sftp:matcher filenamePattern="*.txt" />
+		</sftp:listener>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="ca01097d-02d6-42b2-96d3-d4f5eeb21626" variableName="fileContents"/>
+		<!-- [STUDIO:"Raise error"]<raise-error doc:name="Raise error" doc:id="3ca8704d-5079-4561-ae9e-a0f197888991" type="APP:NOT_FOUND" description='"NotFoundError"'/> [STUDIO] -->
+		<set-variable value="#[attributes.fileName]" doc:name="fileName" doc:id="1389c377-0b9c-4548-be5a-de25d4804065" variableName="fileName" />
+		<try doc:name="Try" doc:id="45d7ea89-dc3d-42d6-a8b5-045c69fffa37" >
+			<choice doc:name="Choice" doc:id="bfa81ec6-0c3c-4e55-87c3-1cf7c1b87770">
+			<when expression='#[attributes.fileName contains ("carbase")]'>
+				<logger level="INFO" doc:name="Logger" doc:id="c31b92d6-8a92-4375-883a-b4bff577769e" message='#["CarBase File"]' />
+				<flow-ref doc:name="Flow Reference" doc:id="0ee68e0c-eb42-4a5c-a172-4ff20b051d55" name="implementation-fileimport-pricebookentry-basedata" />
+			</when>
+			<when expression='#[attributes.fileName contains ("item")]'>
+				<logger level="INFO" doc:name="Logger" doc:id="0949ec5e-cc75-489d-9ad9-b59f296ff23b" message='#["Item File"]' />
+				<flow-ref doc:name="Flow Reference" doc:id="267905b0-a4cf-49a3-9731-1fe2cedee8d1" name="implementation-fileimport-pricebookentry-items" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="0381c88e-bda4-4bf7-9f90-dc17c828e57f" message='#["Other File"]' />
+			</otherwise>
+		</choice>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="fadc87d7-883d-41b8-be74-cba435f8790e" >
+					<flow-ref doc:name="Flow Reference" doc:id="86599f70-cec5-4f53-a1e0-1e517e16e6d9" name="implementation-sftpError"/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<flow-ref doc:name="Archive File" doc:id="e7973984-6be3-4112-960b-f82540578cdf" name="implementation-sftpArchive" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e2129e03-68e9-494d-9053-a72fd6e93203" >
+				<logger level="INFO" doc:name="Logger" doc:id="4b6be512-ebfb-497b-801e-5420c40ddd78" message="#[error]"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="implementation-fileimport-pricebookentry-basedata" doc:id="1c43b6ce-e73d-4a58-a6b2-af2b9c363399" >
+		<flow-ref doc:name="Flow Reference" doc:id="a6106e07-cf81-4fc3-80dd-8fbae7fe1307" name="implementation-fileimport-pricebookentry-standard-base"/>
+		<choice doc:name="Choice" doc:id="db7adecc-8c63-45e5-9c54-385ce5f3f2dc" >
+			<when expression="#[payload.state != 'Failed']">
+				<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="0d5a6920-f7fe-439f-867a-51dad780b5f6" name="implementation-readBaseSubFlow"/> [STUDIO] -->
+				<ee:transform doc:name="Transform Message" doc:id="81bb574e-4ff1-47f3-abdd-edc30dd7f4a6">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) map (
+    {
+        UnitPrice: $[3],
+        "Product2.ProductUniqueID__c": $[0] ++ $[8],
+        "Pricebook2.PricebookUniqueID__c": $[13],
+        IsActive: if ( $[10] == 'Y') '1' else '0',
+        UseStandardPrice: '0',
+        PBEUniqueID__c: $[0] ++ $[8] ++ $[13]
+    }
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<flow-ref doc:name="Flow Reference" doc:id="c0a11541-8942-4728-bb6b-11ae75cb06ee" name="implementation-salesforce-pricebookentry-data-ingest" />
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="20df3be7-daeb-4dab-885d-06286aeafd3b" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : payload.errorMessage
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="implementation-fileimport-pricebookentry-standard-base" doc:id="11ca8a72-45c4-495c-9c2b-5b24e2ecd279">
+		<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="a3ca176d-4786-4031-b953-6e799d084d0f" name="implementation-readBaseSubFlow"/> [STUDIO] -->
+		<ee:transform doc:name="Transform Message" doc:id="2a33426c-51d9-4394-abc4-82fa6d20786c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/csv
+---
+read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) map (
+    {
+        UnitPrice: $[3],
+        "Product2.ProductUniqueID__c": $[0] ++ $[8],
+        "Pricebook2.PricebookUniqueID__c": 'Standard',
+        IsActive: if ( $[10] == 'Y') '1' else '0',
+        UseStandardPrice: '0',
+        PBEUniqueID__c: $[0] ++ $[8] ++ 'Standard'
+    }
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="4a163d5b-56e3-4215-8e51-93da21980ad5" name="implementation-salesforce-pricebookentry-data-ingest" />
+	</flow>
+	<flow name="implementation-fileimport-pricebookentry-items" doc:id="66fac562-45f1-4b61-b275-6406199ad61b" >
+		<!-- [STUDIO:"On New or Updated File"]<sftp:listener doc:name="On New or Updated File" doc:id="12b95612-67cf-4d84-b79c-d73e986bf1de" config-ref="SFTP_Config" directory="${sftp.path}">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+			<sftp:matcher filenamePattern="${sftp.file.pattern.price}" />
+		</sftp:listener> [STUDIO] -->
+		<flow-ref doc:name="Flow Reference" doc:id="acc3add9-f1c6-4ef3-8160-ca4380d3dc0b" name="implementation-fileimport-pricebookentry-standard-items"/>
+		<choice doc:name="Choice" doc:id="f867c387-025a-471b-9b4c-474d730b9840" >
+			<when expression="#[payload.state != 'Failed']">
+				<!-- [STUDIO:"Read"]<file:read doc:name="Read" doc:id="9ccd2478-f507-40f1-90bd-1707bf4563d8" config-ref="File_Config" path="item.txt"/> [STUDIO] -->
+				<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="70bfbcc3-ad16-43fc-a54c-a99f50241c83" name="implementation-readPriceSubFlow"/> [STUDIO] -->
+				<ee:transform doc:name="Transform Message" doc:id="d5011da3-51d7-4676-80c4-d2bf5c6ef2d2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) map (
+    {
+        UnitPrice: $[4],
+        "Product2.ProductUniqueID__c": $[0] ++ $[1] ++ $[7],
+        "Pricebook2.PricebookUniqueID__c": $[10],
+        IsActive: if ( $[10] == 'Y') '1' else '0',
+        UseStandardPrice: '0',
+        PBEUniqueID__c: $[0] ++ $[1] ++ $[7] ++ $[10]
+    }
+)]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="Flow Reference" doc:id="e2168c07-864e-4c44-a1a1-027ea07b2ce8" name="implementation-salesforce-pricebookentry-data-ingest"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="f5c93e61-b17c-494e-8f75-a78fd60be6d8" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: payload.errorMessage
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="implementation-fileimport-pricebookentry-standard-items" doc:id="87a3c09d-f1a9-4a22-ae58-31e0d7c9dd7b" >
+		<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="181c951b-e672-4140-b760-b5fc8e8594c8" name="implementation-readPriceSubFlow"/> [STUDIO] -->
+		<!-- [STUDIO:"Read"]<file:read doc:name="Read" doc:id="54549937-2252-4553-8acb-a3f6ea11262e" config-ref="File_Config" path="item.txt"/> [STUDIO] -->
+		<ee:transform doc:name="Transform Message" doc:id="cd803d5b-1fa2-4188-855c-a3914bdae8a0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) map (
+    {
+        UnitPrice: $[4],
+        "Product2.ProductUniqueID__c": $[0] ++ $[1] ++ $[7],
+        "Pricebook2.PricebookUniqueID__c": 'Standard',
+        IsActive: if ( $[10] == 'Y') '1' else '0',
+        UseStandardPrice: '0',
+        PBEUniqueID__c: $[0] ++ $[1] ++ $[7] ++'Standard'
+    }
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="3f652ab1-57bf-448b-a6c8-43700a4391fa" name="implementation-salesforce-pricebookentry-data-ingest"/>
+	</flow>
+	<flow name="implementation-fileimport-product-items" doc:id="d49e3d0e-e9eb-4044-9155-4aaff4ca9f28" >
+		<!-- [STUDIO:"On New or Updated File"]<sftp:listener doc:name="On New or Updated File" doc:id="ecf33ba0-24d6-4b1d-9473-9124acf323b7" config-ref="SFTP_Config" directory="${sftp.path}">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+			<sftp:matcher filenamePattern="${sftp.file.pattern}" />
+		</sftp:listener> [STUDIO] -->
+		<flow-ref doc:name="Flow Reference" doc:id="1f73d093-90ba-42f7-8300-9e18da3928e5" name="implementation-get-salesforce-recordtype"/>
+		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="990cc6a5-b286-4560-913c-5c12a9c723ed" variableName="id"/>
+		<flow-ref doc:name="Flow Reference" doc:id="f59bda68-887a-4a57-914b-2bd290836a58" name="implementation-readPriceSubFlow"/>
+		<!-- [STUDIO:"Read"]<file:read doc:name="Read" doc:id="d77959b2-25c2-45f0-9f33-d2e0cb4e75d0" config-ref="File_Config" path="item.txt"/> [STUDIO] -->
+		<ee:transform doc:name="Transform Message" doc:id="e290e60a-7cbe-4e0c-bcda-63b8ba5d697e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
+    {
+    	ProductUniqueID__c: $[0] ++ $[1] ++ $[7],
+        Car_Model_Code__c: $[0],
+        Productcode :$[1],
+        Name : $[2],
+        Price_Valid_From__c : ($[5] as Date {format: "yyyyMMdd"}) as String {format: "yyyy-MM-dd"},
+        Price_Valid_upto__c : ($[6] as Date {format: "yyyyMMdd"}) as String {format: "yyyy-MM-dd"},
+        Model_Year__c : $[7],
+        Incl_tax__c: if($[8] == 'Y') '1' else '0',
+        IsActive: if ( $[9] == 'Y') '1' else '0',
+//        Isdeleted : if($ [11] == 'Y') '0' else '1',
+       // MM_code__c: $[12],
+        Family : $[3],
+        Product_Classification__c : 'Configurator',
+        RecordTypeId: vars.id,
+        RCY_MasterDataSource__c: 'STANDARD'  	
+    	
+    }
+)
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="16cf03bd-1c9e-4175-a7f9-0932972f6155" name="implementation-salesforce-product-object-ingest"/>
+		<flow-ref doc:name="Call SFTP Archive" doc:id="18999bf7-af5a-40f9-9a9e-0f82b459143b" name="implementation-sftpArchive" />
+	</flow>
+	<flow name="implementation-fileimport-product-base" doc:id="a24fa979-9be1-4972-997b-42ebedc99fd2" >
+		<!-- [STUDIO:"On New or Updated File"]<sftp:listener doc:name="On New or Updated File" doc:id="49b1eda8-1d5f-463f-b11a-6dfa25032ee3" config-ref="SFTP_Config" directory="${sftp.path}">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+			<sftp:matcher filenamePattern="${sftp.file.pattern}"/>
+		</sftp:listener> [STUDIO] -->
+		<flow-ref doc:name="Flow Reference" doc:id="ee8a32a1-8ca0-4fe4-b084-3c4ea8bc41cc" name="implementation-get-salesforce-recordtype" />
+		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="a4fccf7d-7c04-49a7-8171-c37b99ca31a4" variableName="id"/>
+		<flow-ref doc:name="Flow Reference" doc:id="8a119f97-9a20-4d8e-ad96-4d2300ce5fc2" name="implementation-readBaseSubFlow"/>
+		<ee:transform doc:name="Transform Message" doc:id="84ecf1c7-9f9f-4ca9-84ed-9fa0cd144afe" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
+    {
+    	ProductUniqueID__c: $[0] ++ $[8],
+        Car_Model_Code__c: $[0],
+        Productcode :$[0],
+        Name : $[1],
+        Product_Category__c: $[2],
+        Brand__c: if ($[4] == 'V') 'VWPV' else if ($[4] == 'C') 'VWCV' else 'Audi',
+        Body_Style__c: $[5],
+        Price_Valid_From__c : (($[6]) as Date {format: "yyyyMMdd"}) as String {format: "yyyy-MM-dd"},
+        Price_Valid_upto__c : (($[7]) as Date {format: "yyyyMMdd"}) as String {format: "yyyy-MM-dd"},
+        Model_Year__c : $[8],
+        Incl_tax__c: if($[9] == 'Y') '1' else '0',
+        IsActive: if ( $[10] == 'Y') '1' else '0',
+        //IsDeleted : if($ [11] == 'Y') '1' else '0',
+        MM_code__c: $[12],
+        Family : 'CarBaseModel',
+        Product_Classification__c : 'Configurator',
+        RecordTypeId: vars.id,
+        RCY_MasterDataSource__c: 'STANDARD'  	
+    	
+    }
+)
+
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="8b6c3889-45da-4a2a-9e88-cb5f5d65b7e7" name="implementation-salesforce-product-object-ingest"/>
+		<flow-ref doc:name="Call SFTP Archive" doc:id="d4f72bf0-aa93-409d-acd8-e6f85fbfbe5f" name="implementation-sftpArchive" />
+	</flow>
+	<sub-flow name="implementation-sftpRead" doc:id="78cead32-ec26-45b3-b56e-9a868d6723f5" >
+		<sftp:read doc:name="Read" doc:id="a3119d22-d38f-4b9b-a41c-e6ac5f965569" config-ref="SFTP_Config" path="#[vars.fileName]" />
+	</sub-flow>
+	<sub-flow name="implementation-sftpArchive" doc:id="c1ce1656-d506-4f19-af1d-14ec4037eab7" >
+		<sftp:move doc:name="Move" doc:id="c8976d39-092d-4134-8b08-ab38c094e363" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.archive.path}" overwrite="true" renameTo='#[vars.fileName replace ".txt" with(now() as String {format: "yyyyMMddHHmmss"} ++ ".txt")]'/>
+	</sub-flow>
+	<sub-flow name="implementation-sftpError" doc:id="d5dd15d3-a1e4-4c0d-80bb-c86b4a5c2155">
+		<sftp:copy doc:name="Copy" doc:id="a2b27f7d-a870-4198-8dff-f30fbf911ba2" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.error.path}" />
+	</sub-flow>
+	<sub-flow name="implementation-readBaseSubFlow" doc:id="def60baa-3c55-4897-9e60-8ec1666f1567" >
+		<set-variable value="${sftp.file.base}" doc:name="fileName" doc:id="916f2f97-1bf2-47bf-a7a2-4b7dbc07c77f" variableName="fileName" />
+		<flow-ref doc:name="Flow Reference" doc:id="5ad73506-8b98-45bc-8c3e-9ef496e3909f" name="implementation-sftpRead" />
+	</sub-flow>
+	<sub-flow name="implementation-readPriceSubFlow" doc:id="e9e868d0-8324-4e72-b505-59bcab18333e" >
+		<set-variable value="${sftp.file.price}" doc:name="fileName" doc:id="e5015874-ad98-4d0e-a188-ca60c8b5766f" variableName="fileName" />
+		<flow-ref doc:name="Flow Reference" doc:id="8170dbec-256a-4535-b9c8-1e4969a5eef1" name="implementation-sftpRead" />
+	</sub-flow>
+</mule>

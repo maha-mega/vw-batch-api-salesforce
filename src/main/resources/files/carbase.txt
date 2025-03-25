@@ -1,0 +1,13 @@
+model code|model description|price category|price|brand|body style|pricfrom|priceto|model year|incl_tax|active|deleted|mm code|pricelist|pricelisttype
+4GDRAA|Audi RS 6 Avant 4.0 TFSI 412kW quattro tiptronic|AUDI RS6 AVANT|            1404347.83|A|STATION WAGON|20190404|20991231|2017|N|Y|N|0004086700|Avis|Rental
+4GFRAA|Audi RS 7 Sportback 4.0 TFSI 412kW quattro tiptronic|AUDI RS7 SPORTBACK|            1624782.61|A|HATCH BACK|20190404|20991231|2017|N|Y|N|0004088561|Avis|Rental
+4KA02Y|Audi A7 55 TFSI 250kW quattro tiptronic|AUDI A7|            1302000.00|A|Hatch Back|20240402|20991231|2023|N|Y|N|0004088321|Avis|Rental
+4KA02Y|Audi A7 55 TFSI 250kW quattro tiptronic|AUDI A7|            1333217.39|A|Hatch Back|20240402|20991231|2024|N|Y|N|0004088321|Avis|Rental
+4KARCA|Audi RS7 Sportback 441kW tiptronic|AUDI RS7 SPORTBACK|            2090434.78|A|HATCH BACK|20240402|20991231|2024|N|Y|N|0004088562|Avis|Rental
+4KARCA|Audi RS7 Sportback 441kW tiptronic|AUDI RS7 SPORTBACK|            2090434.78|A|HATCH BACK|20240402|20991231|2023|N|Y|N|0004088562|Avis|Rental
+4KARRA|Audi RS 7 Sportback performance 463 kW tiptronic|AUDI RS7 SPORTBACK|            2159043.48|A|HATCH BACK|20240402|20991231|2024|N|Y|N|0004088567|Avis|Rental
+4KARRA|Audi RS 7 Sportback performance 463 kW tiptronic|AUDI RS7 SPORTBACK|            2156695.65|A|HATCH BACK|20240403|20991231|2023|N|Y|N|0004088567|Avis|Rental
+4KASFA|Audi S7 Sportback TFSI 331kW tiptronic|AUDI A7|            1505913.04|A|Hatch Back|20240402|20991231|2023|N|Y|N|0004088552|Avis|Rental
+4KASFA|Audi S7 Sportback TFSI 331kW tiptronic|AUDI A7|            1505913.04|A|Hatch Back|20240402|20991231|2024|N|Y|N|0004088552|Avis|Rental
+4MGAJ1|Audi Q7 45 TDI quattro 183kW tiptronic|AUDI Q7|            1340608.70|A|STATION WAGON|20240402|20991231|2023|N|Y|N|0004095103|Avis|Rental
+4MGAJ1|AUDI Q7 45 TDI 183KW TIPTRONIC|AUDI Q7|            1323818.70|A|STATION WAGON|20240402|20991231|2024|N|Y|N|0004095103|Avis|Rental

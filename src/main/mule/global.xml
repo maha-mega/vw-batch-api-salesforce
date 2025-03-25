@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config_Fleet" doc:name="Salesforce Config" doc:id="a3905f46-3191-445b-83f2-d3722cbf5d8f" >
+		<salesforce:jwt-connection consumerKey="${auth.sfdc.clientid}" keyStore="${auth.sfdc.keystore.path}" storePassword="${auth.sfdc.keystore.password}" principal="${auth.sfdc.principal.user}" tokenEndpoint="${auth.sfdc.tokenurl}" />
+	</salesforce:sfdc-config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="769aa380-e9c0-4119-9ea8-1bf0debf6361" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<sftp:config name="SFTP_Config" doc:name="SFTP Config"
+		doc:id="ae3c80df-4998-40c4-bcac-8c7eaaa64129">
+		<sftp:connection host="${sftp.host}"
+			username="${sftp.username}" password="${sftp.password}"
+			connectionTimeoutUnit="MINUTES" responseTimeoutUnit="MINUTES"
+			sshConfigOverride="${app.home}/mule_sshd_config" workingDir="${sftp.working.path}">
+			<reconnection>
+				<reconnect-forever />
+			</reconnection>
+			<pooling-profile minEvictionMillis="3600000"
+				maxActive="0" maxIdle="0" maxWait="0" />
+		</sftp:connection>
+	</sftp:config>
+	<configuration-properties
+		doc:name="Configuration properties"
+		doc:id="a364bf40-bc74-4cbd-9681-5fe0f0dc3c79"
+		file="config\config-dev.yaml" />
+</mule>

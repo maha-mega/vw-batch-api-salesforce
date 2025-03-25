@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_e9e868d0_8324_4e72_b505_59bcab18333e_Input_Attributes = { _?: String }
+
