@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
-	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
 	<salesforce:sfdc-config name="Salesforce_Config_Fleet" doc:name="Salesforce Config" doc:id="a3905f46-3191-445b-83f2-d3722cbf5d8f" >
-		<salesforce:jwt-connection consumerKey="${auth.sfdc.clientid}" keyStore="${auth.sfdc.keystore.path}" storePassword="${auth.sfdc.keystore.password}" principal="${auth.sfdc.principal.user}" tokenEndpoint="${auth.sfdc.tokenurl}" />
+		<salesforce:jwt-connection consumerKey="${auth.sfdc.clientid}" keyStore="${auth.sfdc.keystore.path}" storePassword="${secure::auth.password}" principal="${auth.sfdc.principal.user}" tokenEndpoint="${auth.sfdc.tokenurl}" />
 	</salesforce:sfdc-config>
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="769aa380-e9c0-4119-9ea8-1bf0debf6361" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
@@ -17,7 +18,7 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 	<sftp:config name="SFTP_Config" doc:name="SFTP Config"
 		doc:id="ae3c80df-4998-40c4-bcac-8c7eaaa64129">
 		<sftp:connection host="${sftp.host}"
-			username="${sftp.username}" password="${sftp.password}"
+			username="${sftp.username}" password="${secure::sftp.password}"
 			connectionTimeoutUnit="MINUTES" responseTimeoutUnit="MINUTES"
 			sshConfigOverride="${app.home}/mule_sshd_config" workingDir="${sftp.working.path}">
 			<reconnection>
@@ -30,5 +31,10 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 	<configuration-properties
 		doc:name="Configuration properties"
 		doc:id="a364bf40-bc74-4cbd-9681-5fe0f0dc3c79"
-		file="config\config-dev.yaml" />
+		file="config/config-${mule.env}.yaml" />
+	<global-property doc:name="Global Property" doc:id="bd7873cb-49c5-491a-b355-9da456161b68" name="mule.env" value="dev"/>
+	<global-property doc:name="Global Property" doc:id="f1e5be40-035e-4ef1-be8d-dfb0fabd8631" name="mule.key" value="secureVW" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="67b63815-4b81-45af-9d71-86c18f3e5116" file="config/config-${mule.env}-secure.yaml" key="${mule.key}">
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
 </mule>

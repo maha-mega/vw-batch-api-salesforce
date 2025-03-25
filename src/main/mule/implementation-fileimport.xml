@@ -48,7 +48,6 @@ http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sft
 		<flow-ref doc:name="Flow Reference" doc:id="a6106e07-cf81-4fc3-80dd-8fbae7fe1307" name="implementation-fileimport-pricebookentry-standard-base"/>
 		<choice doc:name="Choice" doc:id="db7adecc-8c63-45e5-9c54-385ce5f3f2dc" >
 			<when expression="#[payload.state != 'Failed']">
-				<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="0d5a6920-f7fe-439f-867a-51dad780b5f6" name="implementation-readBaseSubFlow"/> [STUDIO] -->
 				<ee:transform doc:name="Transform Message" doc:id="81bb574e-4ff1-47f3-abdd-edc30dd7f4a6">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -83,7 +82,6 @@ output application/json
 		</choice>
 	</flow>
 	<flow name="implementation-fileimport-pricebookentry-standard-base" doc:id="11ca8a72-45c4-495c-9c2b-5b24e2ecd279">
-		<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="a3ca176d-4786-4031-b953-6e799d084d0f" name="implementation-readBaseSubFlow"/> [STUDIO] -->
 		<ee:transform doc:name="Transform Message" doc:id="2a33426c-51d9-4394-abc4-82fa6d20786c">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -104,17 +102,9 @@ read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) m
 		<flow-ref doc:name="Flow Reference" doc:id="4a163d5b-56e3-4215-8e51-93da21980ad5" name="implementation-salesforce-pricebookentry-data-ingest" />
 	</flow>
 	<flow name="implementation-fileimport-pricebookentry-items" doc:id="66fac562-45f1-4b61-b275-6406199ad61b" >
-		<!-- [STUDIO:"On New or Updated File"]<sftp:listener doc:name="On New or Updated File" doc:id="12b95612-67cf-4d84-b79c-d73e986bf1de" config-ref="SFTP_Config" directory="${sftp.path}">
-			<scheduling-strategy >
-				<fixed-frequency />
-			</scheduling-strategy>
-			<sftp:matcher filenamePattern="${sftp.file.pattern.price}" />
-		</sftp:listener> [STUDIO] -->
 		<flow-ref doc:name="Flow Reference" doc:id="acc3add9-f1c6-4ef3-8160-ca4380d3dc0b" name="implementation-fileimport-pricebookentry-standard-items"/>
 		<choice doc:name="Choice" doc:id="f867c387-025a-471b-9b4c-474d730b9840" >
 			<when expression="#[payload.state != 'Failed']">
-				<!-- [STUDIO:"Read"]<file:read doc:name="Read" doc:id="9ccd2478-f507-40f1-90bd-1707bf4563d8" config-ref="File_Config" path="item.txt"/> [STUDIO] -->
-				<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="70bfbcc3-ad16-43fc-a54c-a99f50241c83" name="implementation-readPriceSubFlow"/> [STUDIO] -->
 				<ee:transform doc:name="Transform Message" doc:id="d5011da3-51d7-4676-80c4-d2bf5c6ef2d2" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -149,8 +139,6 @@ output application/json
 		</choice>
 	</flow>
 	<flow name="implementation-fileimport-pricebookentry-standard-items" doc:id="87a3c09d-f1a9-4a22-ae58-31e0d7c9dd7b" >
-		<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="181c951b-e672-4140-b760-b5fc8e8594c8" name="implementation-readPriceSubFlow"/> [STUDIO] -->
-		<!-- [STUDIO:"Read"]<file:read doc:name="Read" doc:id="54549937-2252-4553-8acb-a3f6ea11262e" config-ref="File_Config" path="item.txt"/> [STUDIO] -->
 		<ee:transform doc:name="Transform Message" doc:id="cd803d5b-1fa2-4188-855c-a3914bdae8a0" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -171,16 +159,9 @@ read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) m
 		<flow-ref doc:name="Flow Reference" doc:id="3f652ab1-57bf-448b-a6c8-43700a4391fa" name="implementation-salesforce-pricebookentry-data-ingest"/>
 	</flow>
 	<flow name="implementation-fileimport-product-items" doc:id="d49e3d0e-e9eb-4044-9155-4aaff4ca9f28" >
-		<!-- [STUDIO:"On New or Updated File"]<sftp:listener doc:name="On New or Updated File" doc:id="ecf33ba0-24d6-4b1d-9473-9124acf323b7" config-ref="SFTP_Config" directory="${sftp.path}">
-			<scheduling-strategy >
-				<fixed-frequency />
-			</scheduling-strategy>
-			<sftp:matcher filenamePattern="${sftp.file.pattern}" />
-		</sftp:listener> [STUDIO] -->
 		<flow-ref doc:name="Flow Reference" doc:id="1f73d093-90ba-42f7-8300-9e18da3928e5" name="implementation-get-salesforce-recordtype"/>
 		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="990cc6a5-b286-4560-913c-5c12a9c723ed" variableName="id"/>
 		<flow-ref doc:name="Flow Reference" doc:id="f59bda68-887a-4a57-914b-2bd290836a58" name="implementation-readPriceSubFlow"/>
-		<!-- [STUDIO:"Read"]<file:read doc:name="Read" doc:id="d77959b2-25c2-45f0-9f33-d2e0cb4e75d0" config-ref="File_Config" path="item.txt"/> [STUDIO] -->
 		<ee:transform doc:name="Transform Message" doc:id="e290e60a-7cbe-4e0c-bcda-63b8ba5d697e" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -200,9 +181,9 @@ read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
 //        Isdeleted : if($ [11] == 'Y') '0' else '1',
        // MM_code__c: $[12],
         Family : $[3],
-        Product_Classification__c : 'Configurator',
-        RecordTypeId: vars.id,
-        RCY_MasterDataSource__c: 'STANDARD'  	
+        Product_Classification__c : Mule::p("static.productClassification"),
+        RecordTypeId: vars.id,	
+        RCY_MasterDataSource__c: Mule::p("static.masterDataSource") 
     	
     }
 )
@@ -213,12 +194,6 @@ read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
 		<flow-ref doc:name="Call SFTP Archive" doc:id="18999bf7-af5a-40f9-9a9e-0f82b459143b" name="implementation-sftpArchive" />
 	</flow>
 	<flow name="implementation-fileimport-product-base" doc:id="a24fa979-9be1-4972-997b-42ebedc99fd2" >
-		<!-- [STUDIO:"On New or Updated File"]<sftp:listener doc:name="On New or Updated File" doc:id="49b1eda8-1d5f-463f-b11a-6dfa25032ee3" config-ref="SFTP_Config" directory="${sftp.path}">
-			<scheduling-strategy >
-				<fixed-frequency />
-			</scheduling-strategy>
-			<sftp:matcher filenamePattern="${sftp.file.pattern}"/>
-		</sftp:listener> [STUDIO] -->
 		<flow-ref doc:name="Flow Reference" doc:id="ee8a32a1-8ca0-4fe4-b084-3c4ea8bc41cc" name="implementation-get-salesforce-recordtype" />
 		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="a4fccf7d-7c04-49a7-8171-c37b99ca31a4" variableName="id"/>
 		<flow-ref doc:name="Flow Reference" doc:id="8a119f97-9a20-4d8e-ad96-4d2300ce5fc2" name="implementation-readBaseSubFlow"/>
@@ -243,10 +218,10 @@ read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
         IsActive: if ( $[10] == 'Y') '1' else '0',
         //IsDeleted : if($ [11] == 'Y') '1' else '0',
         MM_code__c: $[12],
-        Family : 'CarBaseModel',
-        Product_Classification__c : 'Configurator',
+        Family : Mule::p("static.family"),
+        Product_Classification__c : Mule::p("static.productClassification"),
         RecordTypeId: vars.id,
-        RCY_MasterDataSource__c: 'STANDARD'  	
+        RCY_MasterDataSource__c: Mule::p("static.masterDataSource") 	
     	
     }
 )
