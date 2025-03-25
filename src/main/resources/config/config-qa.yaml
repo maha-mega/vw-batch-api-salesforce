@@ -2,7 +2,6 @@ auth:
     sfdc:
         clientid: "3MVG9CG8tifMyyO33Ys0ROWOZNzG.4C9jF7UWFZ9Kb91DOZs2A4VWMyTldMfIMlwssmNYRQH4erEHR6jdd7a5"
         keystore:
-            password: "Password1"
             path: "certificates/certsa.jks"
         principal:
             user: "maha@megabytes-tech.com.fleetdev"
@@ -20,7 +19,10 @@ sftp:
                 base: "/DEV/FleetPrices/carbase.txt"
                 price: "/DEV/FleetPrices/item.txt"
     host: "152.107.143.42"
-    password: "QrvX0@bY8q"
     username: "Mulesoft"
     working:
         path: "/DEV/FleetPrices/"
+static:
+     family: 'CarBaseModel'
+     productClassification : 'Configurator'
+     masterDataSource: 'STANDARD' 
