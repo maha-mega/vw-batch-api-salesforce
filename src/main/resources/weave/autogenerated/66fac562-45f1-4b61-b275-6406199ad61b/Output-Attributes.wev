@@ -1,4 +1,0 @@
-%dw 2.0
-
-type auto_66fac562_45f1_4b61_b275_6406199ad61b_Output_Attributes = { _?: String }
-
