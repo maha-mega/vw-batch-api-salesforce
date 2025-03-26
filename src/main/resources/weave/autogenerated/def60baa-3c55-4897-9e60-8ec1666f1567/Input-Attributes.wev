@@ -1,4 +1,0 @@
-%dw 2.0
-
-type auto_def60baa_3c55_4897_9e60_8ec1666f1567_Input_Attributes = { _?: String }
-

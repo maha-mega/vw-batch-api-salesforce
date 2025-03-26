@@ -21,11 +21,17 @@ http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sft
 			<choice doc:name="Choice" doc:id="bfa81ec6-0c3c-4e55-87c3-1cf7c1b87770">
 			<when expression='#[attributes.fileName contains ("carbase")]'>
 				<logger level="INFO" doc:name="Logger" doc:id="c31b92d6-8a92-4375-883a-b4bff577769e" message='#["CarBase File"]' />
-				<flow-ref doc:name="Flow Reference" doc:id="0ee68e0c-eb42-4a5c-a172-4ff20b051d55" name="implementation-fileimport-pricebookentry-basedata" />
+				<flow-ref doc:name="Call PriceBook Flow - CarBase" doc:id="0ee68e0c-eb42-4a5c-a172-4ff20b051d55" name="implementation-fileimport-pricebookentry-basedata" />
+					<logger level="INFO" doc:name="Logger" doc:id="5af53142-1945-4009-b813-d69af2d12f53" message='#["CarBase - Price Book Batch Completed"]' />
+					<flow-ref doc:name="Call Product Flow - CarBase" doc:id="9a3ba66f-25df-4dbd-8e72-9d3c6af48511" name="implementation-fileimport-product-base" />
+					<logger level="INFO" doc:name="Logger" doc:id="60cbdc74-c718-4535-a317-199f00eeb0a4" message='#["CarBase - Product Batch Completed"]' />
 			</when>
 			<when expression='#[attributes.fileName contains ("item")]'>
 				<logger level="INFO" doc:name="Logger" doc:id="0949ec5e-cc75-489d-9ad9-b59f296ff23b" message='#["Item File"]' />
-				<flow-ref doc:name="Flow Reference" doc:id="267905b0-a4cf-49a3-9731-1fe2cedee8d1" name="implementation-fileimport-pricebookentry-items" />
+				<flow-ref doc:name="Call PriceBook Flow - Item" doc:id="267905b0-a4cf-49a3-9731-1fe2cedee8d1" name="implementation-fileimport-pricebookentry-items" />
+					<logger level="INFO" doc:name="Logger" doc:id="9b76eb6f-b623-4377-b4e1-87058f2a81de" message='#["Item - Price Book Batch Completed"]' />
+					<flow-ref doc:name="Call Product Flow - Item" doc:id="01cb8f7f-ea4d-4862-a654-7f6fcab9e664" name="implementation-fileimport-product-base" />
+					<logger level="INFO" doc:name="Logger" doc:id="de977671-6306-4f28-b458-0107e44c4f9c" message='#["Item - Product Batch Completed"]' />
 			</when>
 			<otherwise>
 				<logger level="INFO" doc:name="Logger" doc:id="0381c88e-bda4-4bf7-9f90-dc17c828e57f" message='#["Other File"]' />
@@ -167,7 +173,7 @@ read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) m
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/csv
 ---
-read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
+read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) map (
     {
     	ProductUniqueID__c: $[0] ++ $[1] ++ $[7],
         Car_Model_Code__c: $[0],
@@ -202,7 +208,7 @@ read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/csv
 ---
-read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
+read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) map (
     {
     	ProductUniqueID__c: $[0] ++ $[8],
         Car_Model_Code__c: $[0],
@@ -240,7 +246,7 @@ read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
 		<sftp:move doc:name="Move" doc:id="c8976d39-092d-4134-8b08-ab38c094e363" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.archive.path}" overwrite="true" renameTo='#[vars.fileName replace ".txt" with(now() as String {format: "yyyyMMddHHmmss"} ++ ".txt")]'/>
 	</sub-flow>
 	<sub-flow name="implementation-sftpError" doc:id="d5dd15d3-a1e4-4c0d-80bb-c86b4a5c2155">
-		<sftp:copy doc:name="Copy" doc:id="a2b27f7d-a870-4198-8dff-f30fbf911ba2" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.error.path}" />
+		<sftp:copy doc:name="Copy" doc:id="a2b27f7d-a870-4198-8dff-f30fbf911ba2" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.error.path}" renameTo='#[vars.fileName replace ".txt" with(now() as String {format: "yyyyMMddHHmmss"} ++ ".txt")]'/>
 	</sub-flow>
 	<sub-flow name="implementation-readBaseSubFlow" doc:id="def60baa-3c55-4897-9e60-8ec1666f1567" >
 		<set-variable value="${sftp.file.base}" doc:name="fileName" doc:id="916f2f97-1bf2-47bf-a7a2-4b7dbc07c77f" variableName="fileName" />
