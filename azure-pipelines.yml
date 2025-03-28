@@ -1,0 +1,50 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - release
+
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}: 
+    anypointENV: PROD
+    anypointWorker: SMALL
+    key: $(prod.key)
+    mule.env: prod
+    elk.url: $(prod.elk.url)
+    elk.key: $(prod.elk.key)
+    elk.ts: $(prod.elk.ts)
+  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}: 
+    anypointENV: INT
+    anypointWorker: MICRO
+    key: $(non-prod.key)
+    mule.env: int
+    elk.url: $(int.elk.url)
+    elk.key: $(non-prod.elk.key)
+    elk.ts: $(non-prod.elk.ts)
+  ${{ if eq(variables['Build.SourceBranchName'], 'release') }}: 
+    anypointENV: QA
+    anypointWorker: MICRO
+    key: $(non-prod.key)
+    mule.env: qa
+    elk.url: $(qa.elk.url)
+    elk.key: $(non-prod.elk.key)
+    elk.ts: $(non-prod.elk.ts)
+
+pool:
+  name: 'CodeReviewPC1'
+steps:
+      
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    mavenAuthenticateFeed: true
+    publishJUnitResults: false
+    javaHomeOption: 'JDKVersion'
+    mavenVersionOption: 'Default'
+    effectivePomSkip: true
+    sonarQubeRunAnalysis: false
+    goals: 'clean deploy -DconnectorProvider=http -DmuleDeploy -DskipMunitTests -DproxySet=true -DproxyHost=10.36.15.96 -DproxyPort=8080 -DmuleDeploy -Dmule.workerType=$(anypointWorker) -Dmule.workers=1 -Denvironment=$(anypointENV) -Dmule.env=$(mule.env) -Dkey=$(key) -Danypoint.platform.client_id=$(anypoint.platform.client_id) -Danypoint.platform.client_secret=$(anypoint.platform.client_secret) -DconnectedAppClientId=$(connectedAppClientId) -DconnectedAppClientSecret=$(connectedAppClientSecret) -DelkURL=$(elk.url) -DelkTS=$(elk.ts) "-DelkKey=$(elk.key)'

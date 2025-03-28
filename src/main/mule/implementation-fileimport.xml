@@ -33,16 +33,16 @@ http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sft
 			<choice doc:name="Choice" doc:id="bfa81ec6-0c3c-4e55-87c3-1cf7c1b87770">
 			<when expression='#[lower(attributes.fileName) contains ("carbase")]'>
 				<logger level="INFO" doc:name="Logger" doc:id="c31b92d6-8a92-4375-883a-b4bff577769e" message='#["CarBase File"]' />
-				<flow-ref doc:name="Call Product Flow - CarBase" doc:id="9a3ba66f-25df-4dbd-8e72-9d3c6af48511" name="implementation-fileimport-product-base" />
+				<flow-ref doc:name="Call PriceBook Flow - CarBase" doc:id="0ee68e0c-eb42-4a5c-a172-4ff20b051d55" name="implementation-fileimport-pricebookentry-basedata" />
 					<logger level="INFO" doc:name="Logger" doc:id="5af53142-1945-4009-b813-d69af2d12f53" message='#["CarBase - Price Book Batch Completed"]' />
-					<flow-ref doc:name="Call PriceBook Flow - CarBase" doc:id="0ee68e0c-eb42-4a5c-a172-4ff20b051d55" name="implementation-fileimport-pricebookentry-basedata" />
+					<flow-ref doc:name="Call Product Flow - CarBase" doc:id="9a3ba66f-25df-4dbd-8e72-9d3c6af48511" name="implementation-fileimport-product-base" />
 					<logger level="INFO" doc:name="Logger" doc:id="60cbdc74-c718-4535-a317-199f00eeb0a4" message='#["CarBase - Product Batch Completed"]' />
 			</when>
 			<when expression='#[lower(attributes.fileName) contains ("item")]'>
 				<logger level="INFO" doc:name="Logger" doc:id="0949ec5e-cc75-489d-9ad9-b59f296ff23b" message='#["Item File"]' />
-					<flow-ref doc:name="Call Product Flow - Item" doc:id="01cb8f7f-ea4d-4862-a654-7f6fcab9e664" name="implementation-fileimport-product-items" />
+				<flow-ref doc:name="Call PriceBook Flow - Item" doc:id="267905b0-a4cf-49a3-9731-1fe2cedee8d1" name="implementation-fileimport-pricebookentry-items" />
 					<logger level="INFO" doc:name="Logger" doc:id="9b76eb6f-b623-4377-b4e1-87058f2a81de" message='#["Item - Price Book Batch Completed"]' />
-					<flow-ref doc:name="Call PriceBook Flow - Item" doc:id="267905b0-a4cf-49a3-9731-1fe2cedee8d1" name="implementation-fileimport-pricebookentry-items" />
+					<flow-ref doc:name="Call Product Flow - Item" doc:id="01cb8f7f-ea4d-4862-a654-7f6fcab9e664" name="implementation-fileimport-product-items" />
 					<logger level="INFO" doc:name="Logger" doc:id="de977671-6306-4f28-b458-0107e44c4f9c" message='#["Item - Product Batch Completed"]' />
 			</when>
 			<otherwise>
@@ -179,6 +179,7 @@ read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) m
 	<flow name="implementation-fileimport-product-items" doc:id="d49e3d0e-e9eb-4044-9155-4aaff4ca9f28" >
 		<flow-ref doc:name="Flow Reference" doc:id="1f73d093-90ba-42f7-8300-9e18da3928e5" name="implementation-get-salesforce-recordtype"/>
 		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="990cc6a5-b286-4560-913c-5c12a9c723ed" variableName="id"/>
+		<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="f59bda68-887a-4a57-914b-2bd290836a58" name="implementation-readPriceSubFlow"/> [STUDIO] -->
 		<ee:transform doc:name="Transform Message" doc:id="e290e60a-7cbe-4e0c-bcda-63b8ba5d697e" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -208,10 +209,12 @@ read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) m
 			</ee:message>
 		</ee:transform>
 		<flow-ref doc:name="Flow Reference" doc:id="16cf03bd-1c9e-4175-a7f9-0932972f6155" name="implementation-salesforce-product-object-ingest"/>
+		<!-- [STUDIO:"Call SFTP Archive"]<flow-ref doc:name="Call SFTP Archive" doc:id="18999bf7-af5a-40f9-9a9e-0f82b459143b" name="implementation-sftpArchive" /> [STUDIO] -->
 	</flow>
 	<flow name="implementation-fileimport-product-base" doc:id="a24fa979-9be1-4972-997b-42ebedc99fd2" >
 		<flow-ref doc:name="Flow Reference" doc:id="ee8a32a1-8ca0-4fe4-b084-3c4ea8bc41cc" name="implementation-get-salesforce-recordtype" />
 		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="a4fccf7d-7c04-49a7-8171-c37b99ca31a4" variableName="id"/>
+		<!-- [STUDIO:"Flow Reference"]<flow-ref doc:name="Flow Reference" doc:id="8a119f97-9a20-4d8e-ad96-4d2300ce5fc2" name="implementation-readBaseSubFlow"/> [STUDIO] -->
 		<ee:transform doc:name="Transform Message" doc:id="84ecf1c7-9f9f-4ca9-84ed-9fa0cd144afe" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -224,7 +227,7 @@ read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) m
         Productcode :$[0],
         Name : $[1],
         Product_Category__c: $[2],
-        Brand__c: if ($[4] == 'V') 'VWPV' else if ($[4] == 'C') 'VWCV' else 'Audi',
+        Brand__c: if ($[4] == 'V') 'Volkswagen' else if ($[4] == 'C') 'Commercial' else 'Audi',
         Body_Style__c: $[5],
         Price_Valid_From__c : (($[6]) as Date {format: "yyyyMMdd"}) as String {format: "yyyy-MM-dd"},
         Price_Valid_upto__c : (($[7]) as Date {format: "yyyyMMdd"}) as String {format: "yyyy-MM-dd"},
@@ -246,6 +249,7 @@ read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) m
 			</ee:message>
 		</ee:transform>
 		<flow-ref doc:name="Flow Reference" doc:id="8b6c3889-45da-4a2a-9e88-cb5f5d65b7e7" name="implementation-salesforce-product-object-ingest"/>
+		<!-- [STUDIO:"Call SFTP Archive"]<flow-ref doc:name="Call SFTP Archive" doc:id="d4f72bf0-aa93-409d-acd8-e6f85fbfbe5f" name="implementation-sftpArchive" /> [STUDIO] -->
 	</flow>
 	<sub-flow name="implementation-sftpRead" doc:id="78cead32-ec26-45b3-b56e-9a868d6723f5" >
 		<sftp:read doc:name="Read" doc:id="a3119d22-d38f-4b9b-a41c-e6ac5f965569" config-ref="SFTP_Config" path="#[vars.fileName]" />

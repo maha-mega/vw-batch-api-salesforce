@@ -15,9 +15,23 @@
 
 		<app.runtime>4.9.0</app.runtime>
 		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<applicationName>${project.artifactId}-${mule.env}</applicationName>
 	</properties>
 
 	<build>
+	<resources>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<filtering>false</filtering>
+			</resource>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>*.yaml</include>
+				</includes>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -29,7 +43,35 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
-				<configuration>
+								<configuration>
+					<cloudHubDeployment>
+						<uri>https://eu1.anypoint.mulesoft.com</uri>
+						<muleVersion>${app.runtime}</muleVersion>
+						<connectedAppClientId>${connectedAppClientId}</connectedAppClientId>
+						<connectedAppClientSecret>${connectedAppClientSecret}</connectedAppClientSecret>
+						<connectedAppGrantType>client_credentials</connectedAppGrantType>
+						<applicationName>${applicationName}</applicationName>
+						<environment>${environment}</environment>
+						<region>eu-central-1</region>
+						<workerType>${mule.workerType}</workerType>
+						<workers>${mule.workers}</workers>
+						<objectStoreV2>true</objectStoreV2>
+						<deploymentTimeout>1200000</deploymentTimeout>
+						<businessGroupId>d1d86d15-3dd9-4646-8c90-bb5cae7327b6</businessGroupId>
+						<properties>
+							<anypoint.platform.base_uri>https://eu1.anypoint.mulesoft.com</anypoint.platform.base_uri>
+							<anypoint.platform.analytics_base_uri>https://analytics-ingest.eu1.anypoint.mulesoft.com</anypoint.platform.analytics_base_uri>
+							<anypoint.platform.client_id>${anypoint.platform.client_id}</anypoint.platform.client_id>
+							<anypoint.platform.client_secret>${anypoint.platform.client_secret}</anypoint.platform.client_secret>
+							<anypoint.platform.config.analytics.agent.enabled>true</anypoint.platform.config.analytics.agent.enabled>
+							<anypoint.platform.visualizer.layer>System</anypoint.platform.visualizer.layer>
+							<mule.env>${mule.env}</mule.env>
+							<key>${key}</key>
+							<elkURL>${elkURL}</elkURL>
+							<elkKey>${elkKey}</elkKey>
+							<elkTS>${elkTS}</elkTS>
+						</properties>
+					</cloudHubDeployment>
 					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
