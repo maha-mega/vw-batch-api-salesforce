@@ -14,13 +14,17 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="2086abbb-fabb-4563-bfd6-d111e0ac0ab4" />
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="20b00c4f-4a2d-4e6e-95d9-5ed08b189da0" maxEntries="10" entryTtl="15" expirationInterval="100" config-ref="ObjectStore_Config" />
 	<flow name="implementation-salesforce-product-object-ingest" doc:id="43738de2-437f-4e22-aee0-df2ad4ece74c" >
+		<logger level="INFO" doc:name="Logger" doc:id="caa4eaae-9846-485f-89c4-cec03cef09cd" message='"********************************* SFDC PRODUCT ENTRY ***************"' />
 		<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="dd8d04c7-05fb-4b87-a136-8a878407f0b0" config-ref="Salesforce_Config_Fleet" externalIdFieldName="ProductUniqueID__c"/>
 		<set-variable value="#[payload.id]" doc:name="jobid" doc:id="2d0b35b2-9552-4358-a592-dbb7d4d44cf6" variableName="jobid"/>
+		<logger level="INFO" doc:name="Logger" doc:id="2779591b-4262-46fa-8841-9a1a84f375d1" message="#[vars.jobid]"/>
 		<flow-ref doc:name="Flow Reference" doc:id="7b1e1aff-a32e-429a-8c94-2a5e60b91960" name="implementation-salesforce-bulk-jobstate"/>
 	</flow>
 	<flow name="implementation-salesforce-pricebookentry-data-ingest" doc:id="541edbf6-779f-425a-b610-c7c77afc9266">
+		<logger level="INFO" doc:name="Logger" doc:id="991163cf-dbde-4f40-bca2-be46b9369ce8" message="#[vars.jobid]" />
 		<salesforce:create-job-bulk-api-v2 objectType="PricebookEntry" operation="upsert" doc:name="Create job bulk api v 2" doc:id="a676963c-eb4f-4c05-b3b9-4007f0f792d3" config-ref="Salesforce_Config_Fleet" externalIdFieldName="PBEUniqueID__c" />
 		<set-variable value="#[payload.id]" doc:name="jobid" doc:id="e3963cf0-e50e-4815-8027-06ca06855b1e" variableName="jobid" />
+		<logger level="INFO" doc:name="Logger" doc:id="8f91cd9c-798e-4745-b4cb-7ca6d533725a" message='" ************************************ SFDC PRICEBOOK ENTRY ****************************"'/>
 		<flow-ref doc:name="Flow Reference" doc:id="d292f2de-9f7e-42c8-bd32-be76d5886764" name="implementation-salesforce-bulk-jobstate" />
 	</flow>
 	<flow name="implementation-retrieve-failed-records" doc:id="e8eec328-69b1-4315-b58d-5f1e1b84583d" >
@@ -48,6 +52,7 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<set-variable value="#[payload.Id]" doc:name="RecordId" doc:id="bbe45450-9f4c-43fc-8b73-77cbff4e90a8" variableName="recordId"/>
+		<logger level="INFO" doc:name="Logger" doc:id="1aa65bc9-626a-4773-ad97-8e18e137366c" message="#[vars.RecordId]"/>
 	</flow>
 	<flow name="implementation-salesforce-bulk-jobstate" doc:id="367ff1dc-1f0e-41ac-869a-29849195ebca" >
 		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="43bb0c01-fa0c-4018-99a0-d7b8033b2c67" >
@@ -55,7 +60,7 @@ payload]]></ee:set-payload>
 			<set-variable value="#[payload.state]" doc:name="job state" doc:id="61bc719d-ab1b-4284-8d60-9b4ad556c268" variableName="state"/>
 			<choice doc:name="Choice" doc:id="6c699713-e8f3-46f5-b2a2-fe8ad6de7bc7" >
 				<when expression='#[vars.state == "JobComplete"]'>
-					<logger level="INFO" doc:name="Logger" doc:id="f9a90712-f420-4d0a-81b1-23075fbddc50" />
+					<logger level="INFO" doc:name="Logger" doc:id="f9a90712-f420-4d0a-81b1-23075fbddc50" message="#[vars.state]"/>
 					<salesforce:retrieve-job-successful-results-bulk-v2 doc:name="Retrieve job successful results bulk v 2" doc:id="adbb2143-93d0-41d4-9948-b9e6962733b3" config-ref="Salesforce_Config_Fleet" id="#[vars.jobid]"/>
 					<ee:transform doc:name="Transform Message" doc:id="37ab1e39-51ee-4444-95b9-83c9a5cfdc53" >
 						<ee:message >
@@ -65,9 +70,10 @@ output application/json
 payload]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="8327da4a-5d24-4358-bc29-006168c39ccb" message="#[payload]"/>
 				</when>
 				<when expression='#[vars.state == "Failed"]' >
-					<logger level="INFO" doc:name="Logger" doc:id="a399eb5c-c6dc-4b9c-ba99-0765cf44dadb" />
+					<logger level="INFO" doc:name="Logger" doc:id="a399eb5c-c6dc-4b9c-ba99-0765cf44dadb" message="#[vars.state]"/>
 					<salesforce:retrieve-job-failed-results-bulk-v2 doc:name="Retrieve job failed results bulk v 2" doc:id="d21cafe4-cc73-4375-83f5-17084f1103d8" config-ref="Salesforce_Config_Fleet" id="#[vars.jobid]"/>
 					<ee:transform doc:name="Transform Message" doc:id="e712466a-258c-44bf-9804-a30bb65036ab" >
 						<ee:message >
@@ -77,9 +83,10 @@ output application/json
 payload]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
+					<logger level="INFO" doc:name="Logger" doc:id="38ba2038-2ac0-485f-8ac4-e802cbe7f1d1" message="#[payload]"/>
 				</when>
 				<otherwise >
-					<logger level="INFO" doc:name="Logger" doc:id="85f1e832-be69-4660-8f72-5917e9dfc67f" />
+					<logger level="INFO" doc:name="Logger" doc:id="85f1e832-be69-4660-8f72-5917e9dfc67f" message="#[vars.state]"/>
 					<ee:transform doc:name="Transform Message" doc:id="021f6f79-1802-474d-b992-1fa372ba623a" >
 						<ee:message >
 							<ee:set-payload ><![CDATA[%dw 2.0

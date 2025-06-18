@@ -2,20 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.mycompany</groupId>
-	<artifactId>vw-batch-api-salesforce</artifactId>
+	<groupId>com.vw</groupId>
+	<artifactId>bapi-fleet-salesforce</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>mule-application</packaging>
 
-	<name>vw-sbatch-api-salesforce</name>
+	<name>bapi-fleet-salesforce</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
-		<app.runtime>4.9.0</app.runtime>
-		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<app.runtime>4.6-java17</app.runtime>
+		<mule.maven.plugin.version>4.2.1</mule.maven.plugin.version>
 		<applicationName>${project.artifactId}-${mule.env}</applicationName>
+		<tags/>
+		<categories>[]</categories>
+		<fields>[]</fields>
 	</properties>
 
 	<build>
@@ -36,7 +38,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-clean-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>3.4.0</version>
 			</plugin>
 			<plugin>
 				<groupId>org.mule.tools.maven</groupId>
@@ -66,7 +68,7 @@
 							<anypoint.platform.config.analytics.agent.enabled>true</anypoint.platform.config.analytics.agent.enabled>
 							<anypoint.platform.visualizer.layer>System</anypoint.platform.visualizer.layer>
 							<mule.env>${mule.env}</mule.env>
-							<key>${key}</key>
+							<key>${mule.key}</key>
 							<elkURL>${elkURL}</elkURL>
 							<elkKey>${elkKey}</elkKey>
 							<elkTS>${elkTS}</elkTS>

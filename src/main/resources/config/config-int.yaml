@@ -1,10 +1,10 @@
 auth:
     sfdc:
-        clientid: "3MVG9CG8tifMyyO33Ys0ROWOZNzG.4C9jF7UWFZ9Kb91DOZs2A4VWMyTldMfIMlwssmNYRQH4erEHR6jdd7a5"
+        clientid: "3MVG9CG8tifMyyO370xVuNbqB.VqMH1EF7Lk9bLsGYsXEaE3e2RfTLWYGIhZjgfDnFwH6j6Ja0bma94Wr0nnO"
         keystore:
-            path: "certificates/certsa.jks"
+            path: "certificates/sit.jks"
         principal:
-            user: "maha@megabytes-tech.com.fleetdev"
+            user: "muleapi@vwsa.com"
         tokenurl: "https://test.salesforce.com/services/oauth2/token"
 sftp:
     archive:
@@ -12,13 +12,13 @@ sftp:
     error:
         path: "/DEV/Error/FleetPrices/"
     file:
-        base: "carbase.txt"
-        price: "item.txt"
+        base: "base.txt"
+        price: "items.txt"
         read:
             path:
-                base: "/DEV/FleetPrices/carbase.txt"
-                price: "/DEV/FleetPrices/item.txt"
-    host: "152.107.143.42"
+                base: "/DEV/FleetPrices/base.txt"
+                price: "/DEV/FleetPrices/items.txt"
+    host: "152.107.143.30"
     username: "Mulesoft"
     working:
         path: "/DEV/FleetPrices/"

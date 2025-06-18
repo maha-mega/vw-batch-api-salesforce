@@ -1,27 +1,27 @@
 auth:
     sfdc:
-        clientid: "3MVG9CG8tifMyyO33Ys0ROWOZNzG.4C9jF7UWFZ9Kb91DOZs2A4VWMyTldMfIMlwssmNYRQH4erEHR6jdd7a5"
+        clientid: "3MVG9HDaKRUgW3Vof_VGjd4HvYvNe1hHUdsF.Ghh_aveVy6bMjrMO2IwpiBFCmHQORWNEiaOuspT3MLxdLKaC"
         keystore:
-            path: "certificates/certsa.jks"
+            path: "certificates/qa.jks"
         principal:
-            user: "maha@megabytes-tech.com.fleetdev"
+            user: "data@vwsa.com.prod.qa"
         tokenurl: "https://test.salesforce.com/services/oauth2/token"
 sftp:
     archive:
-        path: "/DEV/Archive/FleetPrices/"
+        path: "/QA/Archive/FleetPrices/"
     error:
-        path: "/DEV/Error/FleetPrices/"
+        path: "/QA/Error/FleetPrices/"
     file:
-        base: "carbase.txt"
-        price: "item.txt"
+        base: "base.txt"
+        price: "items.txt"
         read:
             path:
-                base: "/DEV/FleetPrices/carbase.txt"
-                price: "/DEV/FleetPrices/item.txt"
+                base: "/QA/FleetPrices/base.txt"
+                price: "/QA/FleetPrices/items.txt"
     host: "152.107.143.42"
     username: "Mulesoft"
     working:
-        path: "/DEV/FleetPrices/"
+        path: "/QA/FleetPrices"
 static:
      family: 'CarBaseModel'
      productClassification : 'Configurator'
