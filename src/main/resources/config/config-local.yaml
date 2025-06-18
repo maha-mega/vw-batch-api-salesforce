@@ -1,0 +1,28 @@
+auth:
+    sfdc:
+        clientid: "3MVG9HDaKRUgW3Vof_VGjd4HvYvNe1hHUdsF.Ghh_aveVy6bMjrMO2IwpiBFCmHQORWNEiaOuspT3MLxdLKaC"
+        keystore:
+            path: "certificates/qa.jks"
+        principal:
+            user: "data@vwsa.com.prod.qa"
+        tokenurl: "https://test.salesforce.com/services/oauth2/token"
+sftp:
+    archive:
+        path: "/QA/Archive/FleetPrices/"
+    error:
+        path: "/QA/Error/FleetPrices/"
+    file:
+        base: "base.txt"
+        price: "items.txt"
+        read:
+            path:
+                base: "/Users/shaliniamith/Downloads/FILES/base.txt"
+                price: "/Users/shaliniamith/Downloads/FILES/items.txt"
+    host: "0.0.0.0"
+    username: "s"
+    working:
+        path: "/Users/shaliniamith/Downloads/FILES"
+static:
+     family: 'CarBaseModel'
+     productClassification : 'Configurator'
+     masterDataSource: 'STANDARD' 

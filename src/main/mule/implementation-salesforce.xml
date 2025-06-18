@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:os="http://www.mulesoft.org/schema/mule/os"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
-http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
 	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="86617cb5-27c6-4648-92e1-38b63cbe619b" >
 		<salesforce:basic-connection username="anilshowreddy@gmail.com" password="Fordemo@999!" securityToken="pNb4As4l4NNrysACAoApl3ea" url="https://login.salesforce.com/services/Soap/u/61.0" />
 	</salesforce:sfdc-config>
@@ -15,7 +16,7 @@ http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/em
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="20b00c4f-4a2d-4e6e-95d9-5ed08b189da0" maxEntries="10" entryTtl="15" expirationInterval="100" config-ref="ObjectStore_Config" />
 	<flow name="implementation-salesforce-product-object-ingest" doc:id="43738de2-437f-4e22-aee0-df2ad4ece74c" >
 		<logger level="INFO" doc:name="Logger" doc:id="caa4eaae-9846-485f-89c4-cec03cef09cd" message='"********************************* SFDC PRODUCT ENTRY ***************"' />
-		<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="dd8d04c7-05fb-4b87-a136-8a878407f0b0" config-ref="Salesforce_Config_Fleet" externalIdFieldName="ProductUniqueID__c"/>
+		<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="dd8d04c7-05fb-4b87-a136-8a878407f0b0" config-ref="Salesforce_Config_Fleet" externalIdFieldName="ProductUniqueID__c" />
 		<set-variable value="#[payload.id]" doc:name="jobid" doc:id="2d0b35b2-9552-4358-a592-dbb7d4d44cf6" variableName="jobid"/>
 		<logger level="INFO" doc:name="Logger" doc:id="2779591b-4262-46fa-8841-9a1a84f375d1" message="#[vars.jobid]"/>
 		<flow-ref doc:name="Flow Reference" doc:id="7b1e1aff-a32e-429a-8c94-2a5e60b91960" name="implementation-salesforce-bulk-jobstate"/>
@@ -84,6 +85,10 @@ payload]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
 					<logger level="INFO" doc:name="Logger" doc:id="38ba2038-2ac0-485f-8ac4-e802cbe7f1d1" message="#[payload]"/>
+				</when>
+				<when expression='#[vars.state == "In Progress"]' >
+					<logger level="INFO" doc:name="Logger" doc:id="d271e1d5-9c3b-4b69-9417-d527f8901eef" message="#[vars.state]"/>
+					<flow-ref doc:name="Flow Reference" doc:id="deddaa32-973c-4a15-b971-d08bf8a3073e" name="implementation-salesforce-bulk-jobstate"/>
 				</when>
 				<otherwise >
 					<logger level="INFO" doc:name="Logger" doc:id="85f1e832-be69-4660-8f72-5917e9dfc67f" message="#[vars.state]"/>

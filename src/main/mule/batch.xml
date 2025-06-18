@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="batchFlow" doc:id="0075e89b-b0b7-4d37-9572-c00c82249f91" >
+		<http:listener doc:name="Listener" doc:id="4a2191f6-139f-4f9b-9f3a-0b7a0e7c3401" config-ref="HTTP_Listener_config" path="/read"/>
+		<file:read doc:name="Read" doc:id="fa1e8ca7-bcde-4159-95a3-f7454d2966cb" config-ref="File_Config" path="/Users/shaliniamith/Downloads/base.txt"/>
+		<ee:transform doc:name="Transform Message" doc:id="fd34ebe8-68e4-4fd7-932a-18be82de1abe">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+read(payload, "applicatin/csv", {"header": true, "separator": "|" }) map (
+    {
+    	ProductUniqueID__c: $[0] ++ $[8] ++ $[13],
+        Car_Model_Code__c: $[0],
+        Productcode :$[0],
+        Name : $[1],
+        Product_Category__c: $[2],
+        Brand__c: if ($[4] == 'V') 'Volkswagen' else if ($[4] == 'C') 'Commercial' else 'Audi',
+        Body_Style__c: $[5],
+        Price_Valid_From__c : (($[6]) as Date {format: "yyyyMMdd"}) as String {format: "yyyy-MM-dd"},
+        Price_Valid_upto__c : if($[7] == '99991231') '3999-01-01' else (($[7]) as Date {format: "yyyyMMdd"}) as String {format: "yyyy-MM-dd"},
+        Model_Year__c : $[8],
+        Incl_tax__c: if($[9] == 'Y') '1' else '0',
+        IsActive: if ( $[10] == 'Y') '1' else '0',
+        //IsDeleted : if($ [11] == 'Y') '1' else '0',
+        MM_code__c: $[12],
+        Family : Mule::p("static.family"),
+        Product_Classification__c : Mule::p("static.productClassification"),
+        RecordTypeId: vars.id,
+        RCY_MasterDataSource__c: Mule::p("static.masterDataSource") 	
+    	
+    }
+)
+
+
+]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+		<batch:job jobName="batchBatch_Job" doc:id="a4e8d017-4cac-4770-93a8-a1ecaa5f473c" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="211eb369-b6e3-4047-a1da-e54432bc26e0" >
+					<ee:transform doc:name="Transform Message" doc:id="fee4fef9-7562-4dd1-9243-00377f623cc5" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="0eae5e46-c1f9-46a8-a46d-08b13d884eb3" size="2" preserveMimeTypes="true">
+						<ee:transform doc:name="Transform Message" doc:id="12a814da-df20-4e34-a185-8b6ac8d89a2d" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="42add2c5-897b-4d59-ba56-bb67298d5163" config-ref="Salesforce_Config_Fleet" externalIdFieldName="ProductUniqueID__c"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<ee:transform doc:name="Transform Message" doc:id="67a6c71f-cb03-4604-961e-fa7fc9701ba4" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>
