@@ -15,18 +15,70 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="2086abbb-fabb-4563-bfd6-d111e0ac0ab4" />
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="20b00c4f-4a2d-4e6e-95d9-5ed08b189da0" maxEntries="10" entryTtl="15" expirationInterval="100" config-ref="ObjectStore_Config" />
 	<flow name="implementation-salesforce-product-object-ingest" doc:id="43738de2-437f-4e22-aee0-df2ad4ece74c" >
-		<logger level="INFO" doc:name="Logger" doc:id="caa4eaae-9846-485f-89c4-cec03cef09cd" message='"********************************* SFDC PRODUCT ENTRY ***************"' />
-		<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="dd8d04c7-05fb-4b87-a136-8a878407f0b0" config-ref="Salesforce_Config_Fleet" externalIdFieldName="ProductUniqueID__c" />
-		<set-variable value="#[payload.id]" doc:name="jobid" doc:id="2d0b35b2-9552-4358-a592-dbb7d4d44cf6" variableName="jobid"/>
-		<logger level="INFO" doc:name="Logger" doc:id="2779591b-4262-46fa-8841-9a1a84f375d1" message="#[vars.jobid]"/>
-		<flow-ref doc:name="Flow Reference" doc:id="7b1e1aff-a32e-429a-8c94-2a5e60b91960" name="implementation-salesforce-bulk-jobstate"/>
+		<batch:job jobName="implementation-salesforceBatch_Job" doc:id="a08dd7e1-6b6c-4f3c-931e-c093a9af5f2c" >
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="94af9a99-9b68-4981-a457-9de1337ef9b1" >
+					<ee:transform doc:name="Transform Message" doc:id="61d22ec9-4c97-4fd2-a8ca-14c67e37e637" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="cfcd3eea-a758-4397-8a83-33c7b7390bc9" size="500" preserveMimeTypes="true">
+						<ee:transform doc:name="Transform Message" doc:id="2c0e4dea-9a5c-498c-ad45-33f198de445f" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<salesforce:create-job-bulk-api-v2 objectType="Product2" operation="upsert" doc:name="Create job bulk api v 2" doc:id="dd8d04c7-05fb-4b87-a136-8a878407f0b0" config-ref="Salesforce_Config_Fleet" externalIdFieldName="ProductUniqueID__c" />
+						<set-variable value="#[payload.id]" doc:name="jobid" doc:id="2d0b35b2-9552-4358-a592-dbb7d4d44cf6" variableName="jobid"/>
+						<flow-ref doc:name="Flow Reference" doc:id="7b1e1aff-a32e-429a-8c94-2a5e60b91960" name="implementation-salesforce-bulk-jobstate"/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="caa4eaae-9846-485f-89c4-cec03cef09cd" message='"********************************* SFDC PRODUCT ENTRY ***************"' />
+			</batch:on-complete>
+		</batch:job>
+		<logger level="INFO" doc:name="Logger" doc:id="2779591b-4262-46fa-8841-9a1a84f375d1" message='#["******************************** Completed batch for product*********************"]'/>
 	</flow>
 	<flow name="implementation-salesforce-pricebookentry-data-ingest" doc:id="541edbf6-779f-425a-b610-c7c77afc9266">
-		<logger level="INFO" doc:name="Logger" doc:id="991163cf-dbde-4f40-bca2-be46b9369ce8" message="#[vars.jobid]" />
-		<salesforce:create-job-bulk-api-v2 objectType="PricebookEntry" operation="upsert" doc:name="Create job bulk api v 2" doc:id="a676963c-eb4f-4c05-b3b9-4007f0f792d3" config-ref="Salesforce_Config_Fleet" externalIdFieldName="PBEUniqueID__c" />
-		<set-variable value="#[payload.id]" doc:name="jobid" doc:id="e3963cf0-e50e-4815-8027-06ca06855b1e" variableName="jobid" />
+		<batch:job jobName="implementation-salesforceBatch_Job1" doc:id="25d6076f-5458-4c02-b452-def90f77cc27" >
+			<batch:process-records >
+				<batch:step name="Batch_Step1" doc:id="0b428825-c0f6-40ef-bf3b-e83af452aae4" >
+					<ee:transform doc:name="Transform Message" doc:id="d4068c08-5c7c-4989-b8c2-97bce05c9ff6" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="66f9c633-9243-4b14-a99b-c9758c907cbd" size="500" preserveMimeTypes="true">
+						<ee:transform doc:name="Transform Message" doc:id="9fd23249-0696-4d32-835f-784a7ca5a840" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<salesforce:create-job-bulk-api-v2 objectType="PricebookEntry" operation="upsert" doc:name="Create job bulk api v 2" doc:id="a676963c-eb4f-4c05-b3b9-4007f0f792d3" config-ref="Salesforce_Config_Fleet" externalIdFieldName="PBEUniqueID__c" />
+						<set-variable value="#[payload.id]" doc:name="jobid" doc:id="e3963cf0-e50e-4815-8027-06ca06855b1e" variableName="jobid" />
+						<flow-ref doc:name="Flow Reference" doc:id="d292f2de-9f7e-42c8-bd32-be76d5886764" name="implementation-salesforce-bulk-jobstate" />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="991163cf-dbde-4f40-bca2-be46b9369ce8" message="#[vars.jobid]" />
+			</batch:on-complete>
+		</batch:job>
 		<logger level="INFO" doc:name="Logger" doc:id="8f91cd9c-798e-4745-b4cb-7ca6d533725a" message='" ************************************ SFDC PRICEBOOK ENTRY ****************************"'/>
-		<flow-ref doc:name="Flow Reference" doc:id="d292f2de-9f7e-42c8-bd32-be76d5886764" name="implementation-salesforce-bulk-jobstate" />
 	</flow>
 	<flow name="implementation-retrieve-failed-records" doc:id="e8eec328-69b1-4315-b58d-5f1e1b84583d" >
 		<http:listener doc:name="Listener" doc:id="1b65eb1e-4319-467d-8e7e-3894f80ffc12" path="/failed/{id}" config-ref="HTTP_Listener_config"/>

@@ -1,10 +1,10 @@
 auth:
     sfdc:
-        clientid: "3MVG9HDaKRUgW3Vof_VGjd4HvYvNe1hHUdsF.Ghh_aveVy6bMjrMO2IwpiBFCmHQORWNEiaOuspT3MLxdLKaC"
+        clientid: "3MVG9CG8tifMyyO33Ys0ROWOZNzG.4C9jF7UWFZ9Kb91DOZs2A4VWMyTldMfIMlwssmNYRQH4erEHR6jdd7a5"
         keystore:
-            path: "certificates/qa.jks"
+            path: "certificates/certsa.jks"
         principal:
-            user: "data@vwsa.com.prod.qa"
+            user: "maha@megabytes-tech.com.fleetdev"
         tokenurl: "https://test.salesforce.com/services/oauth2/token"
 sftp:
     archive:
