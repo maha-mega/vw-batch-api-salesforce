@@ -44,7 +44,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 		doc:name="Configuration properties"
 		doc:id="a364bf40-bc74-4cbd-9681-5fe0f0dc3c79"
 		file="config/config-${mule.env}.yaml" />
-	<global-property doc:name="Global Property" doc:id="bd7873cb-49c5-491a-b355-9da456161b68" name="mule.env" value="local"/>
+	<global-property doc:name="Global Property" doc:id="bd7873cb-49c5-491a-b355-9da456161b68" name="mule.env" value="qa"/>
 	<global-property doc:name="Global Property" doc:id="f1e5be40-035e-4ef1-be8d-dfb0fabd8631" name="mule.key" value="secureVW" />
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="67b63815-4b81-45af-9d71-86c18f3e5116" file="config/config-${mule.env}-secure.yaml" key="${mule.key}">
 		<secure-properties:encrypt algorithm="Blowfish" />

@@ -10,101 +10,92 @@ http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sft
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
 http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd">
-	<file:config name="File_Config" doc:name="File Config" doc:id="81ce5eab-9590-476f-9082-7b7d99f07cc0" >
-		<file:connection workingDir="/Users/shaliniamith/Downloads/FILES" />
-	</file:config>
-	<flow name="implementation-scheduledCheckFlow" doc:id="9041d8b7-9501-433f-b91d-84d1b0102bd4" >
-		<http:listener doc:name="Listener" doc:id="0e25e8e1-4c75-40ae-aaf7-eaf8f87a9d26" config-ref="HTTP_Listener_config" path="/base"/>
-		<file:read doc:name="Read" doc:id="55c834d5-b61b-4614-899d-39f36ae15431" config-ref="File_Config" path="/Users/shaliniamith/Downloads/base_1906.txt">
-		</file:read>
-		<!-- [STUDIO:"On New or Updated File"]<sftp:listener doc:name="On New or Updated File" doc:id="9d69905b-fb7b-4add-ab92-bb94ad30579f" config-ref="SFTP_Config" recursive="false" directory="${sftp.working.path}">
+	<flow name="implementation-scheduledCheckFlow" doc:id="af3f4d7e-a056-4669-8abe-9534219d9d83" >
+		<sftp:listener doc:name="On New or Updated File" doc:id="ad2a74e5-54b3-4c21-9607-fca4408d276c" config-ref="SFTP_Config" recursive="false" directory="${sftp.working.path}">
 			<scheduling-strategy>
-				<fixed-frequency />
+				<fixed-frequency frequency="2" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 			<sftp:matcher filenamePattern="*.txt" />
-		</sftp:listener> [STUDIO] -->
-		<logger level="INFO" doc:name="Logger" doc:id="1178836f-d5a7-417f-befa-b05e28edb19c" message='#[" ******************* STARTED :: SFTP Connection Successful ************************************************"]'/>
-		<set-variable value="#[attributes.fileName]" doc:name="fileName" doc:id="1389c377-0b9c-4548-be5a-de25d4804065" variableName="fileName" />
-		<choice doc:name="Choice" doc:id="b577641a-cab7-4d2c-a2ea-11392508a961">
+		</sftp:listener>
+		<set-variable value="#[attributes.fileName]" doc:name="fileName" doc:id="e564c87a-9239-4e9e-8f76-c68d5a919816" variableName="fileName" />
+		<flow-ref doc:name="Call Read File Flow" doc:id="0d0a282a-8804-4552-be3c-cc4433d2c955" name="implementation-sftpRead"/>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="242c63f4-eed9-43c8-8226-a23ca9830547" variableName="fileContents"/>
+		<try doc:name="Try" doc:id="3d2a2d90-3153-4b5a-a6cd-033b5e074127" >
+			<choice doc:name="Choice" doc:id="7e8c1220-66d9-4df5-8385-594db69ba81d">
 			<when expression='#[lower(attributes.fileName) contains ("base")]'>
-				<java:invoke-static doc:name="Invoke static" doc:id="6a95ab75-53cf-4bbd-a61a-14c280515968" class="base" method="split()"/>
-				<logger level="INFO" doc:name="Logger" doc:id="4a3ad11a-a684-44dc-9fa2-e9fbcdc16588" message='#[" ************************ INVOKE BREAKING BASE FILE ***************************"]'/>
-			</when>
-			<when expression='#[lower(attributes.fileName) contains ("item")]'>
-				<java:invoke-static method="split()" doc:name="Invoke static" doc:id="7fbaf45e-98ec-49b5-b191-c02b209aa601" class="item"/>
-				<logger level="INFO" doc:name="Logger" doc:id="6310bed0-c013-4453-91f0-f1d1ae6fce7f" message='#[" ************************ INVOKE BREAKING ITEMS FILE ***************************"]'/>
-			</when>
-			<otherwise >
-				<logger level="INFO" doc:name="Logger" doc:id="0a2173de-789e-4ec2-860c-d23b81a3b1a0" message="#[vars.fileName]"/>
-			</otherwise>
-		</choice>
-		<!-- [STUDIO:"Call Read File Flow"]<flow-ref doc:name="Call Read File Flow" doc:id="194f2231-1b49-46bd-9e7a-791bc1cce692" name="implementation-sftpRead"/> [STUDIO] -->
-		<file:read doc:name="Read" doc:id="67fc933b-37ef-4eb7-93ca-d77a97ed65ba" config-ref="File_Config" path="/Users/shaliniamith/Downloads/FILES/base_0.txt">
-		</file:read>
-		<logger level="INFO" doc:name="Logger" doc:id="ad2a96fb-229c-4c8a-90a0-121e31769ba1" message='#[" ************************ READING FILE FROM WORKING DIRECTORY ***************************"]'/>
-		<logger level="INFO" doc:name="Logger" doc:id="bbaaa300-a2f2-40c8-864f-62a23c18b88d" message='#[" ************************ FILE NAME ***************************" ++ vars.fileName]'/>
-		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="ca01097d-02d6-42b2-96d3-d4f5eeb21626" variableName="fileContents"/>
-		<try doc:name="Try" doc:id="45d7ea89-dc3d-42d6-a8b5-045c69fffa37" >
-			<choice doc:name="Choice" doc:id="bfa81ec6-0c3c-4e55-87c3-1cf7c1b87770">
-			<when expression='#[lower(attributes.fileName) contains ("base")]'>
-				<logger level="INFO" doc:name="Logger" doc:id="c31b92d6-8a92-4375-883a-b4bff577769e" message='#[" ************************ READING FILE : BASE FILE ***************************"]' />
-				<flow-ref doc:name="Call Product Flow - CarBase" doc:id="9a3ba66f-25df-4dbd-8e72-9d3c6af48511" name="implementation-fileimport-product-base" />
-					<logger level="INFO" doc:name="Logger" doc:id="5af53142-1945-4009-b813-d69af2d12f53" message='#[" ************************ CarBase - PRODUCT IMPORT COMPLETED ***************************"]' />
-					<set-payload value="#[vars.fileContents]" doc:name="Set Payload" doc:id="be16c832-88f2-4090-85a3-31cc5791e6d7" />
-					<flow-ref doc:name="Price book Entry - standard" doc:id="259b48ff-449c-437e-8823-fbdb6f2bc086" name="implementation-fileimport-pricebookentry-standard-base"/>
-					<ee:transform doc:name="Transform Message" doc:id="09da54b8-cc0e-465e-8d90-b6d66a109abf">
+				<logger level="INFO" doc:name="Logger" doc:id="1bfb71fc-74cd-40fa-86d2-0e08cd7cb08c" message='#[" ************************ STARTED: READING FILE : BASE FILE ***************************"]' />
+				<flow-ref doc:name="Call Product Flow - CarBase" doc:id="e291538e-be75-4769-86cb-f44db19e3c40" name="implementation-fileimport-product-base" />
+					<ee:transform doc:name="Transform Message" doc:id="f55eaf74-c65c-4eab-93d0-892e0078cfcf">
 						<ee:message>
 							<ee:set-payload><![CDATA[%dw 2.0
 import * from dw::Runtime
 output application/java
 ---
-payload wait 20000]]></ee:set-payload>
+payload wait 30000]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
-					<set-payload value="#[vars.fileContents]" doc:name="Set Payload" doc:id="e02eab01-1afb-4764-b4d7-3cb5b87f1eb3" />
-					<flow-ref doc:name="Call PriceBook Flow - CarBase" doc:id="0ee68e0c-eb42-4a5c-a172-4ff20b051d55" name="implementation-fileimport-pricebookentry-basedata" />
-					<logger level="INFO" doc:name="Logger" doc:id="60cbdc74-c718-4535-a317-199f00eeb0a4" message='#["CarBase - Product Batch Completed"]' />
+					<logger level="INFO" doc:name="Logger" doc:id="08588a31-71e6-493d-ba01-e4588ae0c9a4" message='#[" ************************ CarBase - PRODUCT IMPORT COMPLETED ***************************"]' />
+					<set-payload value="#[vars.fileContents]" doc:name="Set Payload" doc:id="ca2f1aa3-f8f5-498f-a82e-c257041c3ab4" />
+					<flow-ref doc:name="Price book Entry - standard" doc:id="4eae962c-af97-43f2-8da3-8e9ab09d158b" name="implementation-fileimport-pricebookentry-standard-base"/>
+					<ee:transform doc:name="Transform Message" doc:id="f12f7e91-d305-46bd-bb49-ce81244e7069">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::Runtime
+output application/java
+---
+payload wait 30000]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<set-payload value="#[vars.fileContents]" doc:name="Set Payload" doc:id="1bdbbdb4-cd52-4c0d-bb54-54af4f3dbdb1" />
+					<flow-ref doc:name="Call PriceBook Flow - CarBase" doc:id="b750be94-8eff-42c9-a37f-731e6a87a308" name="implementation-fileimport-pricebookentry-basedata" />
+					<logger level="INFO" doc:name="Logger" doc:id="cffb8091-e0e9-4662-9aff-a8bd8e1f17c0" message='#["CarBase - Product Batch Completed"]' />
 			</when>
 			<when expression='#[lower(attributes.fileName) contains ("items")]'>
-				<logger level="INFO" doc:name="Logger" doc:id="0949ec5e-cc75-489d-9ad9-b59f296ff23b" message='#["Item File"]' />
-					<flow-ref doc:name="Call Product Flow - Item" doc:id="01cb8f7f-ea4d-4862-a654-7f6fcab9e664" name="implementation-fileimport-product-items" />
-					<logger level="INFO" doc:name="Logger" doc:id="9b76eb6f-b623-4377-b4e1-87058f2a81de" message='#["Item - Price Book Batch Completed"]' />
-					<set-payload value="#[vars.fileContents]" doc:name="Set Payload" doc:id="29191340-626f-4b06-8280-9feb343d9435" />
-					<flow-ref doc:name="Call Price Book Item - Standards" doc:id="1deca7e2-925e-47d6-89ae-7d693441cea1" name="implementation-fileimport-pricebookentry-standard-items"/>
-					<ee:transform doc:name="Transform Message" doc:id="f42f8dd9-f5c7-4ad1-b6a5-ac6a1b676d8f">
+					<flow-ref doc:name="Call Product Flow - Item" doc:id="3b49a5c9-1b0e-457e-8b5d-9f1134478029" name="implementation-fileimport-product-items" />
+					<ee:transform doc:name="Transform Message" doc:id="f86e5cdd-4ae9-4ce8-870a-b224eb8e2390">
 						<ee:message>
 							<ee:set-payload><![CDATA[%dw 2.0
 import * from dw::Runtime
 output application/java
 ---
-payload wait 20000]]></ee:set-payload>
+payload wait 30000]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
-					<set-payload value="#[vars.fileContents]" doc:name="Set Payload" doc:id="bda57574-d1a4-481a-9fcc-bb31f0a2bf6d" />
-					<flow-ref doc:name="Call PriceBook Flow - Item" doc:id="267905b0-a4cf-49a3-9731-1fe2cedee8d1" name="implementation-fileimport-pricebookentry-items" />
-					<logger level="INFO" doc:name="Logger" doc:id="de977671-6306-4f28-b458-0107e44c4f9c" message='#["Item - Product Batch Completed"]' />
+					<set-payload value="#[vars.fileContents]" doc:name="Set Payload" doc:id="92ef9d6e-8c2d-42e7-9eb1-bbeab24398f1" />
+					<flow-ref doc:name="Call Price Book Item - Standards" doc:id="ecd35da6-8827-4f5c-92f9-6ddfcbae4f12" name="implementation-fileimport-pricebookentry-standard-items"/>
+					<set-payload value="#[vars.fileContents]" doc:name="Set Payload" doc:id="61b70746-cb27-4df8-95e8-219add909371" />
+					<ee:transform doc:name="Transform Message" doc:id="d74c55ea-c4f5-4ba6-8561-d0e6991fbe55">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::Runtime
+output application/java
+---
+payload wait 30000]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<flow-ref doc:name="Call PriceBook Flow - Item" doc:id="3019cfa2-0df5-4fe5-a7c7-d5a651814723" name="implementation-fileimport-pricebookentry-items" />
 			</when>
 			<otherwise>
-				<logger level="INFO" doc:name="Logger" doc:id="0381c88e-bda4-4bf7-9f90-dc17c828e57f" message='#["Other File"]' />
+				<logger level="INFO" doc:name="Logger" doc:id="f52c1b2f-2426-4a3d-93b4-fbabe86d5a94" message='#["Other File"]' />
 			</otherwise>
 		</choice>
 			<error-handler >
-				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="fadc87d7-883d-41b8-be74-cba435f8790e" >
-					<flow-ref doc:name="Flow Reference" doc:id="86599f70-cec5-4f53-a1e0-1e517e16e6d9" name="implementation-sftpError"/>
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="84e6c3d0-e2de-45a8-93d5-5dd968f38cf8" >
+					<flow-ref doc:name="Flow Reference" doc:id="75508bba-c419-4e80-a4f6-3237c5f08785" name="implementation-sftpError"/>
 				</on-error-continue>
 			</error-handler>
 		</try>
-		<flow-ref doc:name="Archive File" doc:id="e7973984-6be3-4112-960b-f82540578cdf" name="implementation-sftpArchive" />
-		<logger level="INFO" doc:name="Logger" doc:id="2966f29d-8640-42eb-9453-cd171b1de5da" message='" Archived Successfully"'/>
+		<flow-ref doc:name="Archive File" doc:id="af37d023-71e6-4d64-98ae-cc9753563d38" name="implementation-sftpArchive" />
+		<logger level="INFO" doc:name="Logger" doc:id="b874b68b-6d7a-4181-83bc-c548e8e4bd68" message='" Archived Successfully"'/>
 		<error-handler>
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e2129e03-68e9-494d-9053-a72fd6e93203" >
-				<logger level="INFO" doc:name="Logger" doc:id="4b6be512-ebfb-497b-801e-5420c40ddd78" message="#[error]"/>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b90de523-2b9c-431e-90af-e98cef71a599" >
+				<logger level="INFO" doc:name="Logger" doc:id="c1b97360-139f-47ec-9c08-2a8b4a32e07c" message="#[error]"/>
 			</on-error-propagate>
 		</error-handler>
 	</flow>
-	<flow name="implementation-fileimport-pricebookentry-standard-base" doc:id="11ca8a72-45c4-495c-9c2b-5b24e2ecd279">
-		<logger level="INFO" doc:name="Logger" doc:id="d5e171a1-de50-459d-a648-96adb03a4f29" message='#["********************** STARTED :   PBE STANDARD **********************"]'/>
-		<ee:transform doc:name="Transform Message" doc:id="2a33426c-51d9-4394-abc4-82fa6d20786c">
+	<flow name="implementation-fileimport-pricebookentry-standard-base" doc:id="eaf88b56-3226-40b0-9210-32623948a6d5">
+		<logger level="INFO" doc:name="Logger" doc:id="e41d6b45-3904-48d4-8ef8-e31752c47a31" message='#["********************** STARTED : FILE IMPORT PBE ITEM - STANDARD BASE DATA **********************"]'/>
+		<ee:transform doc:name="Transform Message" doc:id="9cc00781-50df-42d7-ba43-818b29a04e6b">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/java
@@ -112,20 +103,20 @@ output application/java
 read(vars.fileContents,"applicatin/csv", {"header": true, "separator": "|" }) map (
     {
         UnitPrice: $[3],
-        "Product2.ProductUniqueID__c": $[0] ++ $[8] ++ $[13] ,
+        "Product2.ProductUniqueID__c": $[0] ++ $[8],
         "Pricebook2.PricebookUniqueID__c": 'Standard',
         IsActive: if ( $[10] == 'Y') '1' else '0',
         UseStandardPrice: '0',
-        PBEUniqueID__c: 'PBE'++ $[0] ++ $[8] ++ $[13] ++ 'Standard'
+        PBEUniqueID__c: 'PBE'++ $[0] ++ $[8] ++ 'Standard'
     }
 )]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="Flow Reference" doc:id="4a163d5b-56e3-4215-8e51-93da21980ad5" name="implementation-salesforce-pricebookentry-data-ingest" />
-		<logger level="INFO" doc:name="Logger" doc:id="37960777-6c37-4837-adee-41f5043fae9f" message='#["******************************** pbe standard base*********************"]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="e3893c18-c328-4acd-971e-3f4a49820a8d" message='#["********************** TRANSFORMATION PBE ITEMS - BASE DATA  STANDARD - COMPLETED **********************"]' />
+		<flow-ref doc:name="Flow Reference" doc:id="35916e18-12e1-48ee-97d1-80b75caa013a" name="implementation-salesforce-pricebookentry-data-ingest" />
 	</flow>
-	<flow name="implementation-fileimport-pricebookentry-basedata" doc:id="1c43b6ce-e73d-4a58-a6b2-af2b9c363399">
-		<ee:transform doc:name="Transform Message" doc:id="81bb574e-4ff1-47f3-abdd-edc30dd7f4a6">
+	<flow name="implementation-fileimport-pricebookentry-basedata" doc:id="a4b016e1-8350-4024-b65c-fc1fdf6716da">
+		<ee:transform doc:name="Transform Message" doc:id="76b2379c-b478-42f7-a949-1d8607f1b1e5">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/java
@@ -133,7 +124,7 @@ output application/java
 read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) map (
     {
          UnitPrice: $[3],
-        "Product2.ProductUniqueID__c": $[0] ++ $[8] ++ $[13],
+        "Product2.ProductUniqueID__c": $[0] ++ $[8],
         "Pricebook2.PricebookUniqueID__c": $[13],
          IsActive: if ( $[10] == 'Y') '1' else '0',
          UseStandardPrice: '0',
@@ -142,12 +133,10 @@ read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) m
 )]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="Flow Reference" doc:id="c0a11541-8942-4728-bb6b-11ae75cb06ee" name="implementation-salesforce-pricebookentry-data-ingest" />
-		<logger level="INFO" doc:name="Logger" doc:id="a076f98f-02fd-4070-b0cb-4e801e644fb0" message="************************* SFDC IMPORT PBE BASE DATA ******************************" />
+		<flow-ref doc:name="Flow Reference" doc:id="620f685d-d228-4dde-b052-41235985aed6" name="implementation-salesforce-pricebookentry-data-ingest" />
 	</flow>
-	<flow name="implementation-fileimport-pricebookentry-items" doc:id="66fac562-45f1-4b61-b275-6406199ad61b" >
-		<logger level="INFO" doc:name="Logger" doc:id="c7b1b97b-4b03-4350-abf2-adceb9cb998c" message='#["************************************ Started : PBE ITEM ************************"]'/>
-		<ee:transform doc:name="Transform Message" doc:id="d5011da3-51d7-4676-80c4-d2bf5c6ef2d2">
+	<flow name="implementation-fileimport-pricebookentry-items" doc:id="1be40796-31f1-4b77-bbf5-909296a244ba" >
+		<ee:transform doc:name="Transform Message" doc:id="540f09bf-eb1b-4ef5-8006-b59d082f9d9b">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/java
@@ -155,21 +144,19 @@ output application/java
 read(vars.fileContents, "applicatin/csv", {"header": true, "separator": "|" }) map (
     {
         UnitPrice: $[4],
-        "Product2.ProductUniqueID__c": $[0] ++ $[1] ++ $[7] ++ $[10],
+        "Product2.ProductUniqueID__c": $[0] ++ $[1] ++ $[7],
         "Pricebook2.PricebookUniqueID__c": $[10],
-        IsActive: if ( $[10] == 'Y') '1' else '0',
+        IsActive: if ( $[9] == 'Y') '1' else '0',
         UseStandardPrice: '0',
         PBEUniqueID__c: 'PBE'++ $[0] ++ $[1] ++ $[7] ++ $[10]
     }
 )]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="13d9ea10-991d-4e26-842e-1285f425a171" message="*************************** PBE ITEMS ********************************"/>
-		<flow-ref doc:name="Flow Reference" doc:id="e2168c07-864e-4c44-a1a1-027ea07b2ce8" name="implementation-salesforce-pricebookentry-data-ingest" />
+		<flow-ref doc:name="Flow Reference" doc:id="04e7a3fb-5a5c-46ce-82f6-a07788291b4f" name="implementation-salesforce-pricebookentry-data-ingest" />
 	</flow>
-	<flow name="implementation-fileimport-pricebookentry-standard-items" doc:id="87a3c09d-f1a9-4a22-ae58-31e0d7c9dd7b" >
-		<logger level="INFO" doc:name="Logger" doc:id="b390e881-f4df-48c2-8616-b07bfe976347" message='#["************************************ Started : PBE STANDARD ITEM ************************"]'/>
-		<ee:transform doc:name="Transform Message" doc:id="cd803d5b-1fa2-4188-855c-a3914bdae8a0" >
+	<flow name="implementation-fileimport-pricebookentry-standard-items" doc:id="c5d2107e-91df-4dd8-aead-7025f14658d7" >
+		<ee:transform doc:name="Transform Message" doc:id="416b4acf-89b5-4d9e-896f-318d49a73d63" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/java
@@ -177,28 +164,26 @@ output application/java
 read(vars.fileContents,"application/csv", {"header": true, "separator": "|" }) map (
     {
         UnitPrice: $[4],
-        "Product2.ProductUniqueID__c": $[0] ++ $[1] ++ $[7] ++ $[10],
+        "Product2.ProductUniqueID__c": $[0] ++ $[1] ++ $[7],
         "Pricebook2.PricebookUniqueID__c": 'Standard',
-        IsActive: if ( $[10] == 'Y') '1' else '0',
+        IsActive: if ( $[9] == 'Y') '1' else '0',
         UseStandardPrice: '0',
-        PBEUniqueID__c: 'PBE' ++ $[0] ++ $[1] ++ $[7] ++ $[10] ++'Standard'
+        PBEUniqueID__c: 'PBE' ++ $[0] ++ $[1] ++ $[7] ++'Standard'
     }
 )]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="8e823d5e-3629-43b1-8339-66b8708efda7" message="*********************************** Price Book Entry - Standard ************************" />
-		<flow-ref doc:name="Flow Reference" doc:id="3f652ab1-57bf-448b-a6c8-43700a4391fa" name="implementation-salesforce-pricebookentry-data-ingest"/>
+		<flow-ref doc:name="Flow Reference" doc:id="7d4c2bc9-93ae-463f-b3fb-36c309d20566" name="implementation-salesforce-pricebookentry-data-ingest"/>
 	</flow>
-	<flow name="implementation-fileimport-product-items" doc:id="d49e3d0e-e9eb-4044-9155-4aaff4ca9f28" >
-		<flow-ref doc:name="Flow Reference" doc:id="1f73d093-90ba-42f7-8300-9e18da3928e5" name="implementation-get-salesforce-recordtype"/>
-		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="990cc6a5-b286-4560-913c-5c12a9c723ed" variableName="id"/>
-		<logger level="INFO" doc:name="Logger" doc:id="49c54d64-585d-4e4c-afb7-ce9d0d8981e4" message="#[payload]"/>
-		<ee:transform doc:name="Transform Message" doc:id="e290e60a-7cbe-4e0c-bcda-63b8ba5d697e">
+	<flow name="implementation-fileimport-product-items" doc:id="c62a875c-47af-4306-ba12-246fa41f4b36" >
+		<flow-ref doc:name="Flow Reference" doc:id="e3a74610-562a-463a-93ba-a60c21c7c09d" name="implementation-get-salesforce-recordtype"/>
+		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="6d7fd50c-3a6f-42ee-a878-4ddc3a8ef29e" variableName="id"/>
+		<ee:transform doc:name="Transform Message" doc:id="ab7461cf-9d56-4f95-9f06-70ddc77b5a11">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/java
 ---
-read(vars.fileContents as String,"application/csv", {"header": true, "separator": "|" }) map (
+read(vars.fileContents,"application/csv", {"header": true, "separator": "|" }) map (
     {
     	ProductUniqueID__c: $[0] ++ $[1] ++ $[7],
         Car_Model_Code__c: $[0],
@@ -221,15 +206,13 @@ read(vars.fileContents as String,"application/csv", {"header": true, "separator"
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="Flow Reference" doc:id="16cf03bd-1c9e-4175-a7f9-0932972f6155" name="implementation-salesforce-product-object-ingest" />
-		<logger level="INFO" doc:name="Logger" doc:id="3bcf349e-0e3d-4f2a-97c5-0495be32b6a8" message="************************************ Product Items *****************************"/>
+		<flow-ref doc:name="Flow Reference" doc:id="ae5a081e-5747-4eb2-92d0-6bc1c9da493d" name="implementation-salesforce-product-object-ingest" />
 	</flow>
-	<flow name="implementation-fileimport-product-base" doc:id="a24fa979-9be1-4972-997b-42ebedc99fd2" >
-		<flow-ref doc:name="Flow Reference" doc:id="ee8a32a1-8ca0-4fe4-b084-3c4ea8bc41cc" name="implementation-get-salesforce-recordtype" />
-		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="a799b69f-7c0e-436a-82ab-1699cb2031d0" variableName="file"/>
-		<logger level="INFO" doc:name="Logger" doc:id="43e6d1c5-1f6c-4dbd-8aaf-bdecf1b0bfd0" message="************************************************ File import products base *****************************************************"/>
-		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="a4fccf7d-7c04-49a7-8171-c37b99ca31a4" variableName="id" />
-		<ee:transform doc:name="Transform Message" doc:id="84ecf1c7-9f9f-4ca9-84ed-9fa0cd144afe">
+	<flow name="implementation-fileimport-product-base" doc:id="54f76387-a322-4bad-823e-8038ece12731" >
+		<flow-ref doc:name="Flow Reference" doc:id="01046a82-cb00-4714-a943-87c0e7c5b840" name="implementation-get-salesforce-recordtype" />
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="3f95f883-6a67-4a40-97fb-d1afab7591f6" variableName="file"/>
+		<set-variable value="#[vars.recordId[0]]" doc:name="id" doc:id="5309bc7f-f7ac-4ca2-9e90-15e9a33d7ce5" variableName="id" />
+		<ee:transform doc:name="Transform Message" doc:id="bf72cb90-6eb2-4562-a5d0-c1f8ae7c9d8f">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/java
@@ -262,23 +245,15 @@ read(vars.fileContents, "application/csv", {"header": true, "separator": "|" }) 
 ]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="Flow Reference" doc:id="8b6c3889-45da-4a2a-9e88-cb5f5d65b7e7" name="implementation-salesforce-product-object-ingest"/>
+		<flow-ref doc:name="Flow Reference" doc:id="78c30025-a30a-42bd-bc99-3f2c9a54897b" name="implementation-salesforce-product-object-ingest"/>
 	</flow>
-	<sub-flow name="implementation-sftpRead" doc:id="78cead32-ec26-45b3-b56e-9a868d6723f5" >
-		<sftp:read doc:name="Read" doc:id="a3119d22-d38f-4b9b-a41c-e6ac5f965569" config-ref="SFTP_Config" path="#[vars.fileName]" />
+	<sub-flow name="implementation-sftpRead" doc:id="f2fd3f45-b0b0-4499-8489-a420f3a314d3" >
+		<sftp:read doc:name="Read" doc:id="61588e30-6ca5-42c5-b8a5-e17d047922be" config-ref="SFTP_Config" path="#[vars.fileName]" />
 	</sub-flow>
-	<sub-flow name="implementation-sftpArchive" doc:id="c1ce1656-d506-4f19-af1d-14ec4037eab7" >
-		<sftp:move doc:name="Move" doc:id="c8976d39-092d-4134-8b08-ab38c094e363" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.archive.path}" overwrite="true" renameTo='#[vars.fileName replace ".txt" with(now() as String {format: "yyyyMMddHHmmss"} ++ ".txt")]'/>
+	<sub-flow name="implementation-sftpArchive" doc:id="3d922970-800e-4426-a720-225d2ce07d65" >
+		<sftp:move doc:name="Move" doc:id="f8dcd289-cc23-42c1-8b19-054f9e4fd8b6" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.archive.path}" overwrite="true" renameTo='#[vars.fileName replace ".txt" with(now() as String {format: "yyyyMMddHHmmss"} ++ ".txt")]'/>
 	</sub-flow>
-	<sub-flow name="implementation-sftpError" doc:id="d5dd15d3-a1e4-4c0d-80bb-c86b4a5c2155">
-		<sftp:copy doc:name="Copy" doc:id="a2b27f7d-a870-4198-8dff-f30fbf911ba2" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.error.path}" renameTo='#[vars.fileName replace ".txt" with(now() as String {format: "yyyyMMddHHmmss"} ++ ".txt")]'/>
-	</sub-flow>
-	<sub-flow name="implementation-readBaseSubFlow" doc:id="def60baa-3c55-4897-9e60-8ec1666f1567" >
-		<set-variable value="${sftp.file.base}" doc:name="fileName" doc:id="916f2f97-1bf2-47bf-a7a2-4b7dbc07c77f" variableName="fileName" />
-		<flow-ref doc:name="Flow Reference" doc:id="5ad73506-8b98-45bc-8c3e-9ef496e3909f" name="implementation-sftpRead" />
-	</sub-flow>
-	<sub-flow name="implementation-readPriceSubFlow" doc:id="e9e868d0-8324-4e72-b505-59bcab18333e" >
-		<set-variable value="${sftp.file.price}" doc:name="fileName" doc:id="e5015874-ad98-4d0e-a188-ca60c8b5766f" variableName="fileName" />
-		<flow-ref doc:name="Flow Reference" doc:id="8170dbec-256a-4535-b9c8-1e4969a5eef1" name="implementation-sftpRead" />
+	<sub-flow name="implementation-sftpError" doc:id="c2d8dfe4-fedb-4930-a734-327469e344bd">
+		<sftp:copy doc:name="Copy" doc:id="26c86b83-f55b-444f-9a63-a744043da576" config-ref="SFTP_Config" sourcePath="#[vars.fileName]" targetPath="${sftp.error.path}" renameTo='#[vars.fileName replace ".txt" with(now() as String {format: "yyyyMMddHHmmss"} ++ ".txt")]'/>
 	</sub-flow>
 </mule>
